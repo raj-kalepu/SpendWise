@@ -21,12 +21,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = config('SECRET_KEY')
-
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')], default='127.0.0.1,localhost, https://spendwise-backend-87n6.onrender.com')
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'spendwise-backend-87n6.onrender.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
