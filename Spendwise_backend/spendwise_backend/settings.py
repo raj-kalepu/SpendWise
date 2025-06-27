@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+SECRET_KEY = config('SECRET_KEY')
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'spendwise-backend-87n6.onrender.com']
 
 INSTALLED_APPS = [
