@@ -356,7 +356,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="trans-desc-sub">${t.type}</div>
                 </td>
                 <td class="p-4">${t.category}</td>
-                <td class="p-4 text-right font-semibold ${t.type === 'Income' ? 'trans-amt-pos' : 'trans-amt-neg'}">${t.type === 'Income' ? '+' : '-'}${formatCurrency(t.amount).replace(/^[₹$€£¥A$C$CHF]/, '')}</td>
+                <td class="p-4 text-right font-semibold ${t.type === 'Income' ? '+' : '-'}${formatCurrency(t.amount).replace(/^[₹$€£¥A$C$CHF]/, '')}</td>
                 <td class="p-4 text-center">
                     <button class="trans-edit-btn" data-id="${t.id}"><i class="fas fa-edit"></i></button>
                     <button class="trans-delete-btn" data-id="${t.id}"><i class="fas fa-trash"></i></button>
