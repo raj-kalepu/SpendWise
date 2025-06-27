@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; 
+    // IMPORTANT: This frontend JavaScript is designed to work with a Django backend API.
+    // It will NOT function correctly without a Django server running and exposing the
+    // specified API endpoints for authentication and data management.
+
+    // Base URL for your Django API.
+    // During development, this is typically http://localhost:8000
+    // In production, this will be your deployed Django API URL (e.g., https://api.yourdomain.com)
+    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; // <<< --- CONFIRM THIS IS CORRECT FOR YOUR BACKEND --- >>>
 
     // --- GLOBAL STATE ---
     let state = {
@@ -12,16 +18,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£',
             'AUD': 'A$', 'CAD': 'C$', 'CHF': 'CHF', 'CNY': '¥'
         },
+        // For unauthenticated app, always set to a "public" user
         user: {
             id: 'public-user',
             email: 'public@spendwise.com',
             username: 'PublicUser',
             mobileNumber: 'N/A',
-            isAuthenticated: true 
+            isAuthenticated: true // Always true as there's no login/logout
         }
     };
 
     // --- UI Element References ---
+    // Removed authentication-specific UI elements
     const dashProfIcon = document.getElementById('dash-prof-icon');
 
     const profDisp = document.getElementById('prof-disp');
@@ -84,65 +92,105 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- HELPER FUNCTIONS FOR API CALLS ---
+    // Simplified apiFetch - no token handling needed for unauthenticated app
     const apiFetch = async (url, options = {}) => {
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers,
         };
 
-        const response = await fetch(`${BASE_URL}${url}`, {
-            ...options,
-            headers,
-        });
+        try {
+            const response = await fetch(`${BASE_URL}${url}`, {
+                ...options,
+                headers,
+            });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error(`API Fetch Error: ${response.status} for ${url}`, errorData);
-            throw new Error(`API Error: ${errorData.detail || 'Something went wrong'}`);
+            if (!response.ok) {
+                // Try to parse JSON error, but fall back to text if it's not JSON (e.g., HTML 404)
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = await response.text(); // Get raw text if JSON parsing fails
+                }
+                console.error(`API Fetch Error: ${response.status} for ${url}`, errorData);
+                throw new Error(`API Error: ${response.status} - ${typeof errorData === 'object' ? (errorData.detail || JSON.stringify(errorData)) : errorData}`);
+            }
+            return response;
+        } catch (error) {
+            console.error(`Network or Fetch Error for ${url}:`, error);
+            throw error; // Re-throw to be caught by fetchDataFromBackend's outer catch
         }
-        return response;
     };
 
     // --- DATA FETCHING FUNCTIONS ---
     const fetchDataFromBackend = async () => {
         console.log('Fetching data from backend...');
         try {
+            console.log('Attempting to fetch transactions...');
             const transResponse = await apiFetch('/api/transactions/');
+            console.log('Transactions response received. Status:', transResponse.status, 'OK:', transResponse.ok);
+
             if (transResponse.ok) {
-                state.transactions = await transResponse.json();
-                state.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                console.log('Transactions fetched:', state.transactions.length);
+                const data = await transResponse.json();
+                console.log('Transactions JSON data received:', data); // Log the raw data
+
+                if (Array.isArray(data)) { // Check if it's an array
+                    state.transactions = data;
+                    state.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    console.log('Transactions fetched and sorted. Count:', state.transactions.length);
+                } else {
+                    console.error("Transactions API did not return an array. Received type:", typeof data, "Value:", data);
+                    state.transactions = []; // Ensure it's an empty array to prevent .sort() error
+                }
             } else {
-                console.error("Failed to fetch transactions:", await transResponse.json());
+                // Error handled by apiFetch, but ensure state is clean
                 state.transactions = [];
             }
 
+            console.log('Attempting to fetch budgets...');
             const budgetResponse = await apiFetch('/api/budgets/');
+            console.log('Budgets response received. Status:', budgetResponse.status, 'OK:', budgetResponse.ok);
             if (budgetResponse.ok) {
-                state.budgets = await budgetResponse.json();
-                console.log('Budgets fetched:', state.budgets.length);
+                const data = await budgetResponse.json();
+                console.log('Budgets JSON data received:', data);
+                if (Array.isArray(data)) {
+                    state.budgets = data;
+                    console.log('Budgets fetched. Count:', state.budgets.length);
+                } else {
+                    console.error("Budgets API did not return an array. Received type:", typeof data, "Value:", data);
+                    state.budgets = [];
+                }
             } else {
-                console.error("Failed to fetch budgets:", await budgetResponse.json());
                 state.budgets = [];
             }
 
+            console.log('Attempting to fetch loans...');
             const loanResponse = await apiFetch('/api/loans/');
+            console.log('Loans response received. Status:', loanResponse.status, 'OK:', loanResponse.ok);
             if (loanResponse.ok) {
-                state.loans = await loanResponse.json();
-                console.log('Loans fetched:', state.loans.length);
+                const data = await loanResponse.json();
+                console.log('Loans JSON data received:', data);
+                if (Array.isArray(data)) {
+                    state.loans = data;
+                    console.log('Loans fetched. Count:', state.loans.length);
+                } else {
+                    console.error("Loans API did not return an array. Received type:", typeof data, "Value:", data);
+                    state.loans = [];
+                }
             } else {
-                console.error("Failed to fetch loans:", await loanResponse.json());
                 state.loans = [];
             }
+
             renderAll();
-            console.log('All data fetched and rendered.');
+            console.log('All data fetch attempts completed. Rendering UI.');
         } catch (error) {
-            console.error("Error fetching data from backend:", error);
-            state.transactions = [];
+            console.error("Error in fetchDataFromBackend's outer try-catch block:", error);
+            state.transactions = []; // Ensure state is reset on any major error
             state.budgets = [];
             state.loans = [];
             renderAll();
-            alert("Failed to load data. Please check backend connection.");
+            alert("Failed to load data. Please check backend connection. Details in console.");
         }
     };
 
@@ -155,6 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Formats a date string into a more readable format (e.g., "Jun 23, 2025")
     const formatDate = (dateString) => {
         if (!dateString) return '';
+        // This regex checks for YYYY-MM-DD format
         if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
             return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
@@ -165,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = () => {
         const d = new Date();
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0'); 
+        const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so add 1
         const day = String(d.getDate()).padStart(2, '0');
         return `${day}-${month}-${year}`;
     };
@@ -173,9 +222,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let expensesPieChart, trendsBarChart; // Chart.js instances
 
     // Formats a numeric amount into a currency string (e.g., "₹ 123.45")
-    const formatCurrency = (amount) => {
+    const formatCurrency = (amount, includeSymbol = true) => {
+        const formattedAmount = parseFloat(amount).toFixed(2);
         const symbol = state.availableCurrencies[state.currentCurrency] || '';
-        return `${symbol} ${parseFloat(amount).toFixed(2)}`;
+        return includeSymbol ? `${symbol} ${formattedAmount}` : formattedAmount;
     };
 
     // --- NAVIGATION LOGIC ---
@@ -295,6 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderDashboard();
         renderBudgets();
         renderLoans();
+        // No need to update profile UI based on auth, as it's always "public"
         updateProfileDisplay();
     };
 
@@ -349,6 +400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         filtered.forEach(t => {
             const row = document.createElement('tr');
             row.className = 'tbl-row';
+            // Corrected line to avoid regex in template literal
             row.innerHTML = `
                 <td class="p-4">${formatDate(t.date)}</td>
                 <td class="p-4">
@@ -356,7 +408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="trans-desc-sub">${t.type}</div>
                 </td>
                 <td class="p-4">${t.category}</td>
-                <td class="p-4 text-right font-semibold ${t.type === 'Income' ? '+' : '-'}${formatCurrency(t.amount).replace(/^[₹$€£¥A$C$CHF]/, '')}</td>
+                <td class="p-4 text-right font-semibold ${t.type === 'Income' ? 'trans-amt-pos' : 'trans-amt-neg'}">${t.type === 'Income' ? '+' : '-'}${formatCurrency(t.amount, false)}</td>
                 <td class="p-4 text-center">
                     <button class="trans-edit-btn" data-id="${t.id}"><i class="fas fa-edit"></i></button>
                     <button class="trans-delete-btn" data-id="${t.id}"><i class="fas fa-trash"></i></button>
@@ -614,13 +666,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 closeTransMod();
                 fetchAndRenderData();
             } else {
-                const errorData = await response.json();
-                console.error('Failed to save transaction:', errorData);
-                alert('Failed to save transaction: ' + JSON.stringify(errorData));
+                // Error already logged by apiFetch, just alert a generic message
+                alert('Failed to save transaction. Check console for details.');
             }
         } catch (error) {
-            console.error('Error saving transaction:', error);
-            alert('An error occurred while saving the transaction.');
+            console.error('Error saving transaction in form submission:', error);
+            alert('An error occurred while saving the transaction. Check console for details.');
         }
     });
 
@@ -646,13 +697,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (response.ok) {
                             fetchAndRenderData();
                         } else {
-                            const errorData = await response.json();
-                            console.error('Failed to delete transaction:', errorData);
-                            alert('Failed to delete transaction: ' + JSON.stringify(errorData));
+                            alert('Failed to delete transaction. Check console for details.');
                         }
                     } catch (error) {
                         console.error('Error deleting transaction:', error);
-                        alert('An error occurred while deleting the transaction.');
+                        alert('An error occurred while deleting the transaction. Check console for details.');
                     }
                 }
             });
@@ -680,13 +729,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('bud-form').reset();
                 fetchAndRenderData();
             } else {
-                const errorData = await response.json();
-                console.error('Failed to save budget:', errorData);
-                alert('Failed to save budget: ' + JSON.stringify(errorData));
+                alert('Failed to save budget. Check console for details.');
             }
         } catch (error) {
             console.error('Error saving budget:', error);
-            alert('An error occurred while saving the budget.');
+            alert('An error occurred while saving the budget. Check console for details.');
         }
     });
 
@@ -708,13 +755,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('loan-form').reset();
                 fetchAndRenderData();
             } else {
-                const errorData = await response.json();
-                console.error('Failed to add loan:', errorData);
-                alert('Failed to add loan: ' + JSON.stringify(errorData));
+                alert('Failed to add loan. Check console for details.');
             }
         } catch (error) {
             console.error('Error adding loan:', error);
-            alert('An error occurred while adding the loan.');
+            alert('An error occurred while adding the loan. Check console for details.');
         }
     });
 
@@ -748,14 +793,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                             closeLoanDetMod();
                             fetchAndRenderData();
                         } else {
-                            const errorData = await response.json();
-                            console.error('Failed to update loan status:', errorData);
-                            alert('Failed to update loan status: ' + JSON.stringify(errorData));
+                            alert('Failed to update loan status. Check console for details.');
                         }
                     }
                     catch (error) {
                         console.error('Error updating loan status:', error);
-                        alert('An error occurred while updating the loan status.');
+                        alert('An error occurred while updating the loan status. Check console for details.');
                     }
                 }
             });
@@ -781,13 +824,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 closeLoanDetMod();
                 fetchAndRenderData();
             } else {
-                const errorData = await response.json();
-                console.error('Failed to save loan changes:', errorData);
-                alert('Failed to save loan changes: ' + JSON.stringify(errorData));
+                alert('Failed to save loan changes. Check console for details.');
             }
         } catch (error) {
             console.error('Error saving loan changes:', error);
-            alert('An error occurred while saving loan changes.');
+            alert('An error occurred while saving loan changes. Check console for details.');
         }
     });
 
@@ -819,7 +860,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const selectedRange = document.querySelector('input[name="export-range"]:checked').value;
 
-        let exportUrl = `/api/export/${format}/`; 
+        let exportUrl = `/api/export/${format}/`; // Base URL for export API
         const params = new URLSearchParams();
 
         if (selectedRange === 'custom') {
@@ -855,12 +896,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 saveAs(blob, filename);
                 alert("Report generated and download started!");
             } else {
-                const errorText = await response.text();
-                alert(`Failed to generate report: ${errorText}`);
+                alert(`Failed to generate report. Check console for details.`);
             }
         } catch (error) {
             console.error("Export error:", error);
-            alert("An error occurred during report generation.");
+            alert("An error occurred during report generation. Check console for details.");
         }
     });
 
@@ -957,8 +997,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            // Send PATCH request to update user profile 
-            const response = await apiFetch('/api/user/profile/', { 
+            // Send PATCH request to update user profile (even for public user)
+            const response = await apiFetch('/api/user/profile/', { // This endpoint might need to be adjusted on backend
                 method: 'PATCH',
                 body: JSON.stringify({
                     username: newUsername,
@@ -974,21 +1014,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 state.user.mobileNumber = updatedUser.mobile_number;
 
                 profSaveStat.textContent = "Profile updated successfully!";
-                updateProfileDisplay(); 
+                updateProfileDisplay(); // Update UI based on new profile data
                 toggleProfileEditMode(false);
             } else {
-                const errorData = await response.json();
-                if (errorData.username) userErr.textContent = errorData.username[0];
-                if (errorData.email) emErr.textContent = errorData.email[0];
-                profSaveStat.textContent = 'Failed to save changes: ' + (errorData.detail || '');
+                alert('Failed to save changes. Check console for details.');
             }
         } catch (error) {
             console.error("Error saving profile:", error);
-            profSaveStat.textContent = `Error saving profile: An unexpected error occurred.`;
+            profSaveStat.textContent = `Error saving profile: An unexpected error occurred. Check console for details.`;
         }
     });
 
-    // Event listener for changing password
+    // Event listener for changing password (removed functionality, but keeping button for now)
     chgPassBtn.addEventListener('click', async () => {
         passStat.textContent = "Password change is not available in this unauthenticated mode.";
         currPassInp.value = '';
