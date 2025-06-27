@@ -11,6 +11,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os # Ensure os is imported
+from decouple import config # Ensure config is imported
+import dj_database_url # Ensure dj_database_url is imported
+from dotenv import load_dotenv # Import load_dotenv
+
+# Load environment variables from .env file (ensure this is at the top)
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,17 +28,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # GENERATE A NEW, STRONG SECRET KEY FOR PRODUCTION
-SECRET_KEY = 'django-insecure-@97z9z#=06d9n)i0m3z&!&_v!b*p8!p7x*m0c@y(1_0^c21v-q'
+# Read SECRET_KEY from environment (e.g., from .env file or Render env vars)
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # Set to False in production!
+# Read DEBUG, default to False, cast to boolean
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [] # Add your production domain(s) here, e.g., ['your-backend-api.com', 'localhost', '127.0.0.1']
+# Read ALLOWED_HOSTS from environment, default to common local hosts
+# Ensure your Render backend URL is in the ALLOWED_HOSTS environment variable
+# e.g., ALLOWED_HOSTS="127.0.0.1,localhost,spendwise-backend-87n6.onrender.com"
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')], default='127.0.0.1,localhost, https://spendwise-backend-87n6.onrender.com')
 
 
 # Application definition
-
-# backend/Spendwise_backend/spendwise_backend/settings.py
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,17 +50,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Your custom apps
+    # Custom apps
     'expenses',
     # Third-party apps
     'rest_framework',
+    'corsheaders', 
 ]
 
-# backend/Spendwise_backend/spendwise_backend/settings.py
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Render usually adds this for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,33 +91,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'spendwise_backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-import os
-from decouple import config # Import config
-
-
-# ... (other imports)
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY') # Read SECRET_KEY from environment
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool) # Read DEBUG, default to False, cast to boolean
-
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')], default='127.0.0.1,localhost')
-
-import dj_database_url # You'll need to install this: pip install dj-database-url
 
 DATABASES = {
     'default': dj_database_url.parse(
-        config('DATABASE_URL', default='sqlite:///db.sqlite3') # Default to SQLite for local
+        config('DATABASE_URL', default='sqlite:///db.sqlite3') 
     )
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -124,9 +116,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -136,13 +125,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -156,9 +139,42 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100, # Adjust as needed
 }
 
-# Static files settings for production (if not using separate static hosting)
-STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Where collected static files will go
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
+
+
+# CORS Headers settings
+CORS_ALLOW_ALL_ORIGINS = False #
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",       
+    "http://localhost:5500",      
+    "http://127.0.0.1:5500",
+
+    "https://spendwise-beryl.vercel.app", # Example from your logs
+    "https://spendwise-4xtzfvzq3-gowtham-raj-kalepus-projects.vercel.app",
+    "https://spendwise-ico10raih-gowtham-raj-kalepus-projects.vercel.app",
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'OPTIONS', 
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
