@@ -11,37 +11,22 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-import os # Ensure os is imported
-from decouple import config # Ensure config is imported
-import dj_database_url # Ensure dj_database_url is imported
-from dotenv import load_dotenv # Import load_dotenv
+import os
+from decouple import config 
+import dj_database_url 
+from dotenv import load_dotenv 
 
-# Load environment variables from .env file (ensure this is at the top)
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# GENERATE A NEW, STRONG SECRET KEY FOR PRODUCTION
-# Read SECRET_KEY from environment (e.g., from .env file or Render env vars)
 SECRET_KEY = config('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# Read DEBUG, default to False, cast to boolean
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Read ALLOWED_HOSTS from environment, default to common local hosts
-# Ensure your Render backend URL is in the ALLOWED_HOSTS environment variable
-# e.g., ALLOWED_HOSTS="127.0.0.1,localhost,spendwise-backend-87n6.onrender.com"
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')], default='127.0.0.1,localhost, https://spendwise-backend-87n6.onrender.com')
 
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
