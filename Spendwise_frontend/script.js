@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
-   
+    
     const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; 
+
     // --- GLOBAL STATE ---
     let state = {
         transactions: [],
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- UI Element References ---
+    // Removed authentication-specific UI elements
     const dashProfIcon = document.getElementById('dash-prof-icon');
 
     const profDisp = document.getElementById('prof-disp');
@@ -136,9 +138,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.log('Transactions fetched and sorted. Count:', state.transactions.length);
                 } else {
                     console.error("Transactions API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
-                    state.transactions = [];
+                    state.transactions = []; // Ensure it's an empty array to prevent .sort() error
                 }
             } else {
+                // Error handled by apiFetch, but ensure state is clean
                 state.transactions = [];
             }
 
@@ -205,7 +208,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Formats a date string into a more readable format (e.g., "Jun 23, 2025")
     const formatDate = (dateString) => {
         if (!dateString) return '';
-        // This regex checks for YYYY-MM-DD format
         if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
             return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
@@ -224,7 +226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let expensesPieChart, trendsBarChart; // Chart.js instances
 
     // Formats a numeric amount into a currency string (e.g., "₹ 123.45")
-    const formatCurrency = (amount, includeSymbol = true) => {
+    const formatCurrency = (amount, includeSymbol = true) => { // Added includeSymbol parameter
         const formattedAmount = parseFloat(amount).toFixed(2);
         const symbol = state.availableCurrencies[state.currentCurrency] || '';
         return includeSymbol ? `${symbol} ${formattedAmount}` : formattedAmount;
@@ -265,10 +267,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('trans-amt').value = transaction.amount;
             document.getElementById('trans-date').value = transaction.date;
         }
+        // --- MODIFICATION HERE ---
+        transMod.classList.remove('hidden'); // Ensure hidden is removed
         transMod.classList.add('active');
     };
 
-    const closeTransMod = () => transMod.classList.remove('active');
+    const closeTransMod = () => {
+        // --- MODIFICATION HERE ---
+        transMod.classList.remove('active');
+        transMod.classList.add('hidden'); // Add hidden back when closing
+    };
 
     transMod.addEventListener('click', (e) => {
         if (e.target === transMod) closeTransMod();
@@ -402,7 +410,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         filtered.forEach(t => {
             const row = document.createElement('tr');
             row.className = 'tbl-row';
-            // Corrected line to avoid regex in template literal
             row.innerHTML = `
                 <td class="p-4">${formatDate(t.date)}</td>
                 <td class="p-4">
@@ -668,12 +675,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 closeTransMod();
                 fetchAndRenderData();
             } else {
-                // Error already logged by apiFetch, just alert a generic message
-                alert('Failed to save transaction. Check console for details.');
+                const errorData = await response.json();
+                console.error('Failed to save transaction:', errorData);
+                alert('Failed to save transaction: ' + JSON.stringify(errorData));
             }
         } catch (error) {
-            console.error('Error saving transaction in form submission:', error);
-            alert('An error occurred while saving the transaction. Check console for details.');
+            console.error('Error saving transaction:', error);
+            alert('An error occurred while saving the transaction.');
         }
     });
 
@@ -699,11 +707,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (response.ok) {
                             fetchAndRenderData();
                         } else {
-                            alert('Failed to delete transaction. Check console for details.');
+                            const errorData = await response.json();
+                            console.error('Failed to delete transaction:', errorData);
+                            alert('Failed to delete transaction: ' + JSON.stringify(errorData));
                         }
                     } catch (error) {
                         console.error('Error deleting transaction:', error);
-                        alert('An error occurred while deleting the transaction. Check console for details.');
+                        alert('An error occurred while deleting the transaction.');
                     }
                 }
             });
@@ -731,11 +741,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('bud-form').reset();
                 fetchAndRenderData();
             } else {
-                alert('Failed to save budget. Check console for details.');
+                const errorData = await response.json();
+                console.error('Failed to save budget:', errorData);
+                alert('Failed to save budget: ' + JSON.stringify(errorData));
             }
         } catch (error) {
             console.error('Error saving budget:', error);
-            alert('An error occurred while saving the budget. Check console for details.');
+            alert('An error occurred while saving the budget.');
         }
     });
 
@@ -757,11 +769,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('loan-form').reset();
                 fetchAndRenderData();
             } else {
-                alert('Failed to add loan. Check console for details.');
+                const errorData = await response.json();
+                console.error('Failed to add loan:', errorData);
+                alert('Failed to add loan: ' + JSON.stringify(errorData));
             }
         } catch (error) {
             console.error('Error adding loan:', error);
-            alert('An error occurred while adding the loan. Check console for details.');
+            alert('An error occurred while adding the loan.');
         }
     });
 
@@ -795,12 +809,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                             closeLoanDetMod();
                             fetchAndRenderData();
                         } else {
-                            alert('Failed to update loan status. Check console for details.');
+                            const errorData = await response.json();
+                            console.error('Failed to update loan status:', errorData);
+                            alert('Failed to update loan status: ' + JSON.stringify(errorData));
                         }
                     }
                     catch (error) {
                         console.error('Error updating loan status:', error);
-                        alert('An error occurred while updating the loan status. Check console for details.');
+                        alert('An error occurred while updating the loan status.');
                     }
                 }
             });
@@ -826,11 +842,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 closeLoanDetMod();
                 fetchAndRenderData();
             } else {
-                alert('Failed to save loan changes. Check console for details.');
+                const errorData = await response.json();
+                console.error('Failed to save loan changes:', errorData);
+                alert('Failed to save loan changes: ' + JSON.stringify(errorData));
             }
         } catch (error) {
             console.error('Error saving loan changes:', error);
-            alert('An error occurred while saving loan changes. Check console for details.');
+            alert('An error occurred while saving loan changes.');
         }
     });
 
@@ -898,11 +916,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 saveAs(blob, filename);
                 alert("Report generated and download started!");
             } else {
-                alert(`Failed to generate report. Check console for details.`);
+                const errorText = await response.text();
+                alert(`Failed to generate report: ${errorText}`);
             }
         } catch (error) {
             console.error("Export error:", error);
-            alert("An error occurred during report generation. Check console for details.");
+            alert("An error occurred during report generation.");
         }
     });
 
@@ -1019,11 +1038,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updateProfileDisplay(); // Update UI based on new profile data
                 toggleProfileEditMode(false);
             } else {
-                alert('Failed to save changes. Check console for details.');
+                const errorData = await response.json();
+                if (errorData.username) userErr.textContent = errorData.username[0];
+                if (errorData.email) emErr.textContent = errorData.email[0];
+                profSaveStat.textContent = 'Failed to save changes: ' + (errorData.detail || '');
             }
         } catch (error) {
             console.error("Error saving profile:", error);
-            profSaveStat.textContent = `Error saving profile: An unexpected error occurred. Check console for details.`;
+            profSaveStat.textContent = `Error saving profile: An unexpected error occurred.`;
         }
     });
 
