@@ -1,13 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // IMPORTANT: This frontend JavaScript is designed to work with a Django backend API.
-    // It will NOT function correctly without a Django server running and exposing the
-    // specified API endpoints for authentication and data management.
-
-    // Base URL for your Django API.
-    // During development, this is typically http://localhost:8000
-    // In production, this will be your deployed Django API URL (e.g., https://api.yourdomain.com)
-    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; // <<< --- CONFIRM THIS IS CORRECT FOR YOUR BACKEND --- >>>
-
+   
+    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; 
     // --- GLOBAL STATE ---
     let state = {
         transactions: [],
@@ -29,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- UI Element References ---
-    // Removed authentication-specific UI elements
     const dashProfIcon = document.getElementById('dash-prof-icon');
 
     const profDisp = document.getElementById('prof-disp');
@@ -132,19 +124,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Transactions response received. Status:', transResponse.status, 'OK:', transResponse.ok);
 
             if (transResponse.ok) {
-                const data = await transResponse.json();
-                console.log('Transactions JSON data received:', data); // Log the raw data
+                const paginatedData = await transResponse.json(); // Renamed to clearly indicate it's paginated
+                console.log('Transactions JSON data received:', paginatedData); 
 
-                if (Array.isArray(data)) { // Check if it's an array
+                // --- MODIFICATION HERE: Access paginatedData.results ---
+                const data = paginatedData.results; // Extract the actual array from 'results' key
+
+                if (Array.isArray(data)) { 
                     state.transactions = data;
                     state.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
                     console.log('Transactions fetched and sorted. Count:', state.transactions.length);
                 } else {
-                    console.error("Transactions API did not return an array. Received type:", typeof data, "Value:", data);
-                    state.transactions = []; // Ensure it's an empty array to prevent .sort() error
+                    console.error("Transactions API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
+                    state.transactions = [];
                 }
             } else {
-                // Error handled by apiFetch, but ensure state is clean
                 state.transactions = [];
             }
 
@@ -152,13 +146,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const budgetResponse = await apiFetch('/api/budgets/');
             console.log('Budgets response received. Status:', budgetResponse.status, 'OK:', budgetResponse.ok);
             if (budgetResponse.ok) {
-                const data = await budgetResponse.json();
-                console.log('Budgets JSON data received:', data);
+                const paginatedData = await budgetResponse.json(); // Renamed
+                console.log('Budgets JSON data received:', paginatedData);
+                
+                // --- MODIFICATION HERE: Access paginatedData.results ---
+                const data = paginatedData.results; // Extract the actual array from 'results' key
+
                 if (Array.isArray(data)) {
                     state.budgets = data;
                     console.log('Budgets fetched. Count:', state.budgets.length);
                 } else {
-                    console.error("Budgets API did not return an array. Received type:", typeof data, "Value:", data);
+                    console.error("Budgets API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
                     state.budgets = [];
                 }
             } else {
@@ -169,13 +167,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const loanResponse = await apiFetch('/api/loans/');
             console.log('Loans response received. Status:', loanResponse.status, 'OK:', loanResponse.ok);
             if (loanResponse.ok) {
-                const data = await loanResponse.json();
-                console.log('Loans JSON data received:', data);
+                const paginatedData = await loanResponse.json(); // Renamed
+                console.log('Loans JSON data received:', paginatedData);
+                
+                // --- MODIFICATION HERE: Access paginatedData.results ---
+                const data = paginatedData.results; // Extract the actual array from 'results' key
+
                 if (Array.isArray(data)) {
                     state.loans = data;
                     console.log('Loans fetched. Count:', state.loans.length);
                 } else {
-                    console.error("Loans API did not return an array. Received type:", typeof data, "Value:", data);
+                    console.error("Loans API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
                     state.loans = [];
                 }
             } else {
@@ -186,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('All data fetch attempts completed. Rendering UI.');
         } catch (error) {
             console.error("Error in fetchDataFromBackend's outer try-catch block:", error);
-            state.transactions = []; // Ensure state is reset on any major error
+            state.transactions = [];
             state.budgets = [];
             state.loans = [];
             renderAll();
