@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     
-    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com';
+    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com/';
 
     // --- GLOBAL STATE ---
     let state = {
