@@ -1,0 +1,3052 @@
+/* Basic Reset and Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+     --bg-body: #f3f4f6; /* Light gray for body background */
+    --c-sidebar-bg: #4338ca; /* Indigo 700 for sidebar background */
+    --c-sidebar-text: #e0e7ff; /* Indigo 100 for very light text on indigo */
+    --c-nav-hover: #4f46e5; /* Indigo 600 for nav hover (slightly lighter) */
+    --c-nav-active: #3730a3; /* Indigo 800 for nav active (darker) */
+    --c-main-bg: #ffffff; /* White for main content boxes */
+    --c-border: #e5e7eb; /* Light border color */
+    --c-text-main: #374151; /* Dark text for main content */
+    --c-text-light: #6b7280; /* Lighter gray for secondary text */
+    --c-heading: #1f2937; /* Darker text for headings */
+
+    --c-button-main: #4f46e5; /* Indigo */
+    --c-button-main-hover: #4338ca; /* Darker Indigo */
+    --c-button-blue: #3b82f6; /* Blue */
+    --c-button-blue-hover: #2563eb; /* Darker Blue */
+    --c-button-red: #ef4444; /* Red */
+    --c-button-red-hover: #dc2626; /* Darker Red */
+    --c-button-gray: #6b7280; /* Gray */
+    --c-button-gray-hover: #4b5563; /* Darker Gray */
+    --c-button-orange: #f97316; /* Orange */
+    --c-button-orange-hover: #ea580c; /* Darker Orange */
+
+    --c-input-border: #d1d5db; /* Light gray for input borders */
+    --c-input-focus: #9da4ea; /* Light indigo for input focus */
+
+    --c-table-head-bg: #f9fafb; /* Lighter gray for table headers */
+    --c-table-border: #e5e7eb; /* Light border for tables */
+    --c-table-row-hover: #f3f4f6; /* Very light gray for table row hover */
+
+    --c-income: #10b981; /* Green for income */
+    --c-expense: #ef4444; /* Red for expense */
+
+    --c-progress-good: #10b981; /* Green for budget progress */
+    --c-progress-warn: #f59e0b; /* Amber for budget warning */
+    --c-progress-danger: #ef4444; /* Red for budget danger */
+
+    /* Chart Colors (ensure enough unique colors for categories) */
+    --chart-color-1: #6366f1; /* Indigo 500 */
+    --chart-color-2: #ef4444; /* Red 500 */
+    --chart-color-3: #10b981; /* Green 500 */
+    --chart-color-4: #f59e0b; /* Amber 500 */
+    --chart-color-5: #3b82f6; /* Blue 500 */
+    --chart-color-6: #8b5cf6; /* Violet 500 */
+    --chart-color-7: #06b6d4; /* Cyan 500 */
+    --chart-color-8: #f43f5e; /* Rose 500 */
+    --chart-color-9: #eab308; /* Yellow 500 */
+    --chart-color-10: #d946ef; /* Fuchsia 500 */
+    --chart-color-11: #a855f7; /* Purple 500 */
+    --chart-color-12: #22d3ee; /* Aqua 500 */
+    --chart-color-13: #65a30d; /* Lime 600 */
+    --chart-color-14: #be185d; /* Pink 700 */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden; /* Prevent global scrollbar */
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--c-text-main);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure the main app layout takes full available height */
+.app-lay {
+    display: flex;
+    flex-grow: 1; /* Allow it to grow and fill available space */
+    width: 100%;
+    height: 100%; /* Explicitly set height for layout to work within body */
+}
+
+/* Sidebar Navigation */
+nav {
+    background-color: var(--c-sidebar-bg);
+    color: var(--c-sidebar-text);
+    width: 250px;
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    padding: 1.5rem; /* Consistent padding */
+    display: flex;
+    flex-direction: column;
+    border-top-right-radius: 12px; /* Rounded corner */
+    border-bottom-right-radius: 12px; /* Rounded corner */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+nav h1 {
+    margin-bottom: 2rem;
+    font-size: 1.75rem; /* Larger font size for title */
+    font-weight: 700; /* Bold */
+    color: #ffffff; /* White title */
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Allow nav list to take available space */
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem; /* Space between items */
+    border-radius: 8px; /* Rounded corners */
+    color: var(--c-sidebar-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-item i {
+    margin-right: 0.75rem;
+    width: 1.5rem; /* Fixed width for icons */
+    text-align: center;
+}
+
+.nav-item:hover {
+    background-color: var(--c-nav-hover);
+    color: #ffffff;
+}
+
+.nav-item.active {
+    background-color: var(--c-nav-active);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Main Content Area */
+main {
+    flex-grow: 1; /* Allow main content to take remaining space */
+    padding: 1.5rem;
+    overflow-y: auto; /* Enable scrolling for main content */
+    background-color: var(--bg-body);
+}
+
+.sect {
+    display: none; /* Hide all sections by default */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.sect.active {
+    display: block; /* Show active section */
+    opacity: 1;
+}
+
+/* General Box Styling */
+.box {
+    background-color: var(--c-main-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    border: 1px solid var(--c-border); /* Light border */
+}
+
+/* Headings */
+.head-3xl {
+    font-size: 2.25rem; /* 3xl */
+    font-weight: 700; /* Bold */
+    color: var(--c-heading);
+    margin-bottom: 1.5rem;
+}
+
+/* Dashboard Specific Styles */
+.dash-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+#dash-prof-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--c-text-light); /* Lighter gray for icon */
+    transition: color 0.2s ease;
+}
+
+#dash-prof-icon:hover {
+    color: var(--c-text-main);
+}
+
+.wel-con {
+    background-color: #e0f2f7; /* Light blue background */
+    border: 1px solid #a7d9ee; /* Slightly darker blue border */
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    color: #2c5282; /* Darker blue text */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.wel-con span {
+    max-width: calc(100% - 100px); /* Adjust for button if present */
+}
+
+.wel-con a {
+    color: var(--c-button-blue);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.wel-con a:hover {
+    color: var(--c-button-blue-hover);
+}
+
+.sum-val {
+    font-size: 1.875rem; /* 2xl */
+    font-weight: 600;
+    color: var(--c-text-main);
+}
+
+.sum-inc { color: var(--c-income); }
+.sum-exp { color: var(--c-expense); }
+.sum-bal { color: var(--c-text-main); }
+.sum-bal.negative { color: var(--c-expense); } /* Red for negative balance */
+
+/* Alerts Section */
+.alert-wrap {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem; /* XL font for alert heading */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+}
+
+.alert-icon {
+    margin-right: 0.75rem;
+    font-size: 1.5rem;
+}
+
+.alert-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--c-text-light);
+}
+
+.alert-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--c-border);
+}
+
+.alert-item:last-child {
+    border-bottom: none;
+}
+
+.alert-no-data {
+    color: var(--c-text-light);
+    font-style: italic;
+    padding: 0.5rem 0;
+}
+
+/* Charts */
+.chart-box {
+    position: relative;
+    height: 300px; /* Fixed height for charts */
+    width: 100%;
+}
+
+/* Tables */
+.tbl-wrap {
+    overflow-x: auto; /* Enable horizontal scrolling for tables on small screens */
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+table {
+    min-width: 600px; /* Ensure table doesn't get too narrow */
+    border-collapse: collapse;
+}
+
+.tbl-head {
+    background-color: var(--c-table-head-bg);
+    border-bottom: 1px solid var(--c-table-border);
+}
+
+.tbl-head th {
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--c-text-light);
+}
+
+.tbl-row {
+    border-bottom: 1px solid var(--c-table-border);
+    transition: background-color 0.2s ease;
+}
+
+.tbl-row:hover {
+    background-color: var(--c-table-row-hover);
+}
+
+.tbl-row:last-child {
+    border-bottom: none;
+}
+
+.tbl-row td {
+    padding: 1rem;
+    color: var(--c-text-main);
+    font-size: 0.9rem;
+}
+
+.trans-desc-main {
+    font-weight: 500;
+    color: var(--c-text-main);
+}
+
+.trans-desc-sub {
+    font-size: 0.8rem;
+    color: var(--c-text-light);
+}
+
+.trans-amt-pos {
+    color: var(--c-income);
+}
+
+.trans-amt-neg {
+    color: var(--c-expense);
+}
+
+/* Buttons for table actions */
+.trans-edit-btn, .trans-delete-btn, .loan-edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 0 0.4rem;
+    color: var(--c-text-light);
+    transition: color 0.2s ease;
+}
+
+.trans-edit-btn:hover, .loan-edit-btn:hover { color: var(--c-button-blue); }
+.trans-delete-btn:hover { color: var(--c-button-red); }
+
+/* Loan Status Tag */
+.loan-status-tag {
+    display: inline-block;
+    padding: 0.3em 0.8em;
+    border-radius: 9999px; /* Pill shape */
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.loan-status-paid {
+    background-color: #d1fae5; /* Light green */
+    color: #065f46; /* Dark green text */
+}
+
+.loan-status-pending {
+    background-color: #fee2e2; /* Light red */
+    color: #991b1b; /* Dark red text */
+}
+
+/* Filter Bars & Forms */
+.filter-bar, .bud-form-wrap, .loan-form-wrap {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 1rem; /* Space between items */
+    align-items: flex-end; /* Align buttons to bottom of inputs */
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow filter groups to grow */
+    min-width: 120px; /* Minimum width for inputs */
+}
+
+.filter-label, .prof-field-label, .auth-field-label, .exp-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--c-text-light);
+    margin-bottom: 0.3rem;
+}
+
+.filter-inp, .inp {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--c-input-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--c-text-main);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%; /* Ensure inputs take full width of their container */
+}
+
+.filter-inp:focus, .inp:focus {
+    outline: none;
+    border-color: var(--c-input-focus);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Light indigo shadow */
+}
+
+/* Buttons */
+.btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid transparent; /* Default transparent border */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.btn-main, .btn {
+    background-color: var(--c-button-main);
+    color: #ffffff;
+}
+.btn-main:hover, .btn:hover { background-color: var(--c-button-main-hover); }
+
+.btn-blue {
+    background-color: var(--c-button-blue);
+    color: #ffffff;
+}
+.btn-blue:hover { background-color: var(--c-button-blue-hover); }
+
+.btn-red {
+    background-color: var(--c-button-red);
+    color: #ffffff;
+}
+.btn-red:hover { background-color: var(--c-button-red-hover); }
+
+.btn-gray {
+    background-color: var(--c-button-gray);
+    color: #ffffff;
+}
+.btn-gray:hover { background-color: var(--c-button-gray-hover); }
+
+.btn-orange {
+    background-color: var(--c-button-orange);
+    color: #ffffff;
+}
+.btn-orange:hover { background-color: var(--c-button-orange-hover); }
+
+
+/* Auth/Profile Section */
+#prof-set-box {
+    text-align: left; /* Changed from center to left for consistent layout */
+}
+
+/* Removed #auth-opt-con and #logged-prof-det specific styling as they are now static or removed */
+
+.prof-field {
+    margin-bottom: 1rem;
+}
+
+.prof-field-label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allow long IDs/emails to break */
+}
+
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Center buttons */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.prof-status, .prof-error, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+.prof-status { color: #22c55e; } /* Green for success */
+.prof-error, .auth-field-error { color: #ef4444; } /* Red for error */
+.auth-status { color: #3b82f6; } /* Blue for general status */
+
+.prof-sect-head {
+    font-size: 1.125rem; /* Lg font */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center;
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Profile Section - Layout Fixes for Side-by-Side Labels and Inputs */
+
+/* Ensure the main container for the profile settings is left-aligned */
+#prof-set-box {
+    text-align: left;
+    /* Keep existing padding, border-radius, box-shadow, border from your file */
+}
+
+/* Profile Row: Uses CSS Grid for precise alignment of labels, inputs, and errors */
+.prof-row {
+    display: grid; /* Use grid for a two-column layout */
+    /* Define columns: 150px for the label, 1fr for the input/value area (takes remaining space) */
+    grid-template-columns: 150px 1fr;
+    align-items: center; /* Vertically center the label and the input/value */
+    margin-bottom: 1rem; /* Space between each row */
+    gap: 1rem; /* Space between the label column and the input/value column */
+    width: 100%; /* Ensure the row takes the full available width */
+}
+
+/* Label for the profile field */
+.prof-row .prof-field-label {
+    grid-column: 1; /* Places the label in the first column */
+    grid-row: 1; /* Places the label in the first row of its grid area */
+    text-align: right; /* Aligns the label text to the right, next to the input */
+    margin-bottom: 0; /* Remove any stacking margin */
+}
+
+/* Input field or static paragraph value for the profile field */
+.prof-row .prof-p,
+.prof-row .inp {
+    grid-column: 2; /* Places the input/value in the second column */
+    grid-row: 1; /* Places the input/value in the first row of its grid area */
+    width: auto; /* Allows the element to take the space of its grid column */
+    margin-top: 0; /* Remove any stacking margin */
+}
+
+/* Error message specifically for a profile field */
+.prof-row .prof-error {
+    grid-column: 2; /* Places the error message in the second column (under the input) */
+    grid-row: 2; /* Places the error message in the second row of its grid area */
+    margin-top: 0.25rem; /* Small space between the input/value and the error message */
+    text-align: left; /* Aligns the error text to the left, below the input */
+    display: block; /* Ensures the error takes its own line within the grid cell */
+}
+
+/* General styling for static text in profile fields (e.g., User ID) */
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allows long text (like IDs) to wrap */
+}
+
+/* Button Container: Centers buttons and provides consistent spacing */
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Centers buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
+
+/* Status and Error Messages (general, not field-specific) */
+.prof-status, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center; /* Centers these general messages */
+}
+.prof-status { color: #22c55e; } /* Green for success messages */
+/* Note: prof-error is specifically handled within .prof-row for field-specific errors */
+.auth-field-error { color: #ef4444; } /* Red for authentication field errors */
+.auth-status { color: #3b82f6; } /* Blue for general authentication status */
+
+/* Section Headings within the profile settings (e.g., Change Password) */
+.prof-sect-head {
+    font-size: 1.125rem; /* Larger font size */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center; /* Centers these sub-headings */
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Profile Section - Layout Fixes for Side-by-Side Labels and Inputs */
+
+/* Ensure the main container for the profile settings is left-aligned */
+#prof-set-box {
+    text-align: left;
+    /* Keep existing padding, border-radius, box-shadow, border from your file */
+}
+
+/* Profile Row: Uses CSS Grid for precise alignment of labels, inputs, and errors */
+.prof-row {
+    display: grid; /* Use grid for a two-column layout */
+    /* Define columns: 150px for the label, 1fr for the input/value area (takes remaining space) */
+    grid-template-columns: 150px 1fr;
+    align-items: center; /* Vertically center the label and the input/value */
+    margin-bottom: 1rem; /* Space between each row */
+    gap: 1rem; /* Space between the label column and the input/value column */
+    width: 100%; /* Ensure the row takes the full available width */
+}
+
+/* Label for the profile field */
+.prof-row .prof-field-label {
+    grid-column: 1; /* Places the label in the first column */
+    grid-row: 1; /* Places the label in the first row of its grid area */
+    text-align: right; /* Aligns the label text to the right, next to the input */
+    margin-bottom: 0; /* Remove any stacking margin */
+}
+
+/* Input field or static paragraph value for the profile field */
+.prof-row .prof-p,
+.prof-row .inp {
+    grid-column: 2; /* Places the input/value in the second column */
+    grid-row: 1; /* Places the input/value in the first row of its grid area */
+    width: auto; /* Allows the element to take the space of its grid column */
+    margin-top: 0; /* Remove any stacking margin */
+}
+
+/* Error message specifically for a profile field */
+.prof-row .prof-error {
+    grid-column: 2; /* Places the error message in the second column (under the input) */
+    grid-row: 2; /* Places the error message in the second row of its grid area */
+    margin-top: 0.25rem; /* Small space between the input/value and the error message */
+    text-align: left; /* Aligns the error text to the left, below the input */
+    display: block; /* Ensures the error takes its own line within the grid cell */
+}
+
+/* General styling for static text in profile fields (e.g., User ID) */
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allows long text (like IDs) to wrap */
+}
+
+/* Button Container: Centers buttons and provides consistent spacing */
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Centers buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
+
+/* Status and Error Messages (general, not field-specific) */
+.prof-status, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center; /* Centers these general messages */
+}
+.prof-status { color: #22c55e; } /* Green for success messages */
+/* Note: prof-error is specifically handled within .prof-row for field-specific errors */
+.auth-field-error { color: #ef4444; } /* Red for authentication field errors */
+.auth-status { color: #3b82f6; } /* Blue for general authentication status */
+
+/* Section Headings within the profile settings (e.g., Change Password) */
+.prof-sect-head {
+    font-size: 1.125rem; /* Larger font size */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center; /* Centers these sub-headings */
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Profile Section - Layout Fixes for Side-by-Side Labels and Inputs */
+
+/* Ensure the main container for the profile settings is left-aligned */
+#prof-set-box {
+    text-align: left;
+    /* Keep existing padding, border-radius, box-shadow, border from your file */
+}
+
+/* Profile Row: Uses CSS Grid for precise alignment of labels, inputs, and errors */
+.prof-row {
+    display: grid; /* Use grid for a two-column layout */
+    /* Define columns: 150px for the label, 1fr for the input/value area (takes remaining space) */
+    grid-template-columns: 150px 1fr;
+    align-items: center; /* Vertically center the label and the input/value */
+    margin-bottom: 1rem; /* Space between each row */
+    gap: 1rem; /* Space between the label column and the input/value column */
+    width: 100%; /* Ensure the row takes the full available width */
+}
+
+/* Label for the profile field */
+.prof-row .prof-field-label {
+    grid-column: 1; /* Places the label in the first column */
+    grid-row: 1; /* Places the label in the first row of its grid area */
+    text-align: right; /* Aligns the label text to the right, next to the input */
+    margin-bottom: 0; /* Remove any stacking margin */
+}
+
+/* Input field or static paragraph value for the profile field */
+.prof-row .prof-p,
+.prof-row .inp {
+    grid-column: 2; /* Places the input/value in the second column */
+    grid-row: 1; /* Places the input/value in the first row of its grid area */
+    width: auto; /* Allows the element to take the space of its grid column */
+    margin-top: 0; /* Remove any stacking margin */
+}
+
+/* Error message specifically for a profile field */
+.prof-row .prof-error {
+    grid-column: 2; /* Places the error message in the second column (under the input) */
+    grid-row: 2; /* Places the error message in the second row of its grid area */
+    margin-top: 0.25rem; /* Small space between the input/value and the error message */
+    text-align: left; /* Aligns the error text to the left, below the input */
+    display: block; /* Ensures the error takes its own line within the grid cell */
+}
+
+/* General styling for static text in profile fields (e.g., User ID) */
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allows long text (like IDs) to wrap */
+}
+
+/* Button Container: Centers buttons and provides consistent spacing */
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Centers buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
+
+/* Status and Error Messages (general, not field-specific) */
+.prof-status, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center; /* Centers these general messages */
+}
+.prof-status { color: #22c55e; } /* Green for success messages */
+/* Note: prof-error is specifically handled within .prof-row for field-specific errors */
+.auth-field-error { color: #ef4444; } /* Red for authentication field errors */
+.auth-status { color: #3b82f6; } /* Blue for general authentication status */
+
+/* Section Headings within the profile settings (e.g., Change Password) */
+.prof-sect-head {
+    font-size: 1.125rem; /* Larger font size */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center; /* Centers these sub-headings */
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Profile Section - Layout Fixes for Side-by-Side Labels and Inputs */
+
+/* Ensure the main container for the profile settings is left-aligned */
+#prof-set-box {
+    text-align: left;
+    /* Keep existing padding, border-radius, box-shadow, border from your file */
+}
+
+/* Profile Row: Uses CSS Grid for precise alignment of labels, inputs, and errors */
+.prof-row {
+    display: grid; /* Use grid for a two-column layout */
+    /* Define columns: 150px for the label, 1fr for the input/value area (takes remaining space) */
+    grid-template-columns: 150px 1fr;
+    align-items: center; /* Vertically center the label and the input/value */
+    margin-bottom: 1rem; /* Space between each row */
+    gap: 1rem; /* Space between the label column and the input/value column */
+    width: 100%; /* Ensure the row takes the full available width */
+}
+
+/* Label for the profile field */
+.prof-row .prof-field-label {
+    grid-column: 1; /* Places the label in the first column */
+    grid-row: 1; /* Places the label in the first row of its grid area */
+    text-align: right; /* Aligns the label text to the right, next to the input */
+    margin-bottom: 0; /* Remove any stacking margin */
+}
+
+/* Input field or static paragraph value for the profile field */
+.prof-row .prof-p,
+.prof-row .inp {
+    grid-column: 2; /* Places the input/value in the second column */
+    grid-row: 1; /* Places the input/value in the first row of its grid area */
+    width: auto; /* Allows the element to take the space of its grid column */
+    margin-top: 0; /* Remove any stacking margin */
+}
+
+/* Error message specifically for a profile field */
+.prof-row .prof-error {
+    grid-column: 2; /* Places the error message in the second column (under the input) */
+    grid-row: 2; /* Places the error message in the second row of its grid area */
+    margin-top: 0.25rem; /* Small space between the input/value and the error message */
+    text-align: left; /* Aligns the error text to the left, below the input */
+    display: block; /* Ensures the error takes its own line within the grid cell */
+}
+
+/* General styling for static text in profile fields (e.g., User ID) */
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allows long text (like IDs) to wrap */
+}
+
+/* Button Container: Centers buttons and provides consistent spacing */
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Centers buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
+
+/* Status and Error Messages (general, not field-specific) */
+.prof-status, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center; /* Centers these general messages */
+}
+.prof-status { color: #22c55e; } /* Green for success messages */
+/* Note: prof-error is specifically handled within .prof-row for field-specific errors */
+.auth-field-error { color: #ef4444; } /* Red for authentication field errors */
+.auth-status { color: #3b82f6; } /* Blue for general authentication status */
+
+/* Section Headings within the profile settings (e.g., Change Password) */
+.prof-sect-head {
+    font-size: 1.125rem; /* Larger font size */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center; /* Centers these sub-headings */
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Profile Section - Layout Fixes for Side-by-Side Labels and Inputs */
+
+/* Ensure the main container for the profile settings is left-aligned */
+#prof-set-box {
+    text-align: left;
+    /* Keep existing padding, border-radius, box-shadow, border from your file */
+}
+
+/* Profile Row: Uses CSS Grid for precise alignment of labels, inputs, and errors */
+.prof-row {
+    display: grid; /* Use grid for a two-column layout */
+    /* Define columns: 150px for the label, 1fr for the input/value area (takes remaining space) */
+    grid-template-columns: 150px 1fr;
+    align-items: center; /* Vertically center the label and the input/value */
+    margin-bottom: 1rem; /* Space between each row */
+    gap: 1rem; /* Space between the label column and the input/value column */
+    width: 100%; /* Ensure the row takes the full available width */
+}
+
+/* Label for the profile field */
+.prof-row .prof-field-label {
+    grid-column: 1; /* Places the label in the first column */
+    grid-row: 1; /* Places the label in the first row of its grid area */
+    text-align: right; /* Aligns the label text to the right, next to the input */
+    margin-bottom: 0; /* Remove any stacking margin */
+}
+
+/* Input field or static paragraph value for the profile field */
+.prof-row .prof-p,
+.prof-row .inp {
+    grid-column: 2; /* Places the input/value in the second column */
+    grid-row: 1; /* Places the input/value in the first row of its grid area */
+    width: auto; /* Allows the element to take the space of its grid column */
+    margin-top: 0; /* Remove any stacking margin */
+}
+
+/* Error message specifically for a profile field */
+.prof-row .prof-error {
+    grid-column: 2; /* Places the error message in the second column (under the input) */
+    grid-row: 2; /* Places the error message in the second row of its grid area */
+    margin-top: 0.25rem; /* Small space between the input/value and the error message */
+    text-align: left; /* Aligns the error text to the left, below the input */
+    display: block; /* Ensures the error takes its own line within the grid cell */
+}
+
+/* General styling for static text in profile fields (e.g., User ID) */
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allows long text (like IDs) to wrap */
+}
+
+/* Button Container: Centers buttons and provides consistent spacing */
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Centers buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
+
+/* Status and Error Messages (general, not field-specific) */
+.prof-status, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center; /* Centers these general messages */
+}
+.prof-status { color: #22c55e; } /* Green for success messages */
+/* Note: prof-error is specifically handled within .prof-row for field-specific errors */
+.auth-field-error { color: #ef4444; } /* Red for authentication field errors */
+.auth-status { color: #3b82f6; } /* Blue for general authentication status */
+
+/* Section Headings within the profile settings (e.g., Change Password) */
+.prof-sect-head {
+    font-size: 1.125rem; /* Larger font size */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center; /* Centers these sub-headings */
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Profile Section - Layout Fixes for Side-by-Side Labels and Inputs */
+
+/* Ensure the main container for the profile settings is left-aligned */
+#prof-set-box {
+    text-align: left;
+    /* Keep existing padding, border-radius, box-shadow, border from your file */
+}
+
+/* Profile Row: Uses CSS Grid for precise alignment of labels, inputs, and errors */
+.prof-row {
+    display: grid; /* Use grid for a two-column layout */
+    /* Define columns: 150px for the label, 1fr for the input/value area (takes remaining space) */
+    grid-template-columns: 150px 1fr;
+    align-items: center; /* Vertically center the label and the input/value */
+    margin-bottom: 1rem; /* Space between each row */
+    gap: 1rem; /* Space between the label column and the input/value column */
+    width: 100%; /* Ensure the row takes the full available width */
+}
+
+/* Label for the profile field */
+.prof-row .prof-field-label {
+    grid-column: 1; /* Places the label in the first column */
+    grid-row: 1; /* Places the label in the first row of its grid area */
+    text-align: right; /* Aligns the label text to the right, next to the input */
+    margin-bottom: 0; /* Remove any stacking margin */
+}
+
+/* Input field or static paragraph value for the profile field */
+.prof-row .prof-p,
+.prof-row .inp {
+    grid-column: 2; /* Places the input/value in the second column */
+    grid-row: 1; /* Places the input/value in the first row of its grid area */
+    width: auto; /* Allows the element to take the space of its grid column */
+    margin-top: 0; /* Remove any stacking margin */
+}
+
+/* Error message specifically for a profile field */
+.prof-row .prof-error {
+    grid-column: 2; /* Places the error message in the second column (under the input) */
+    grid-row: 2; /* Places the error message in the second row of its grid area */
+    margin-top: 0.25rem; /* Small space between the input/value and the error message */
+    text-align: left; /* Aligns the error text to the left, below the input */
+    display: block; /* Ensures the error takes its own line within the grid cell */
+}
+
+/* General styling for static text in profile fields (e.g., User ID) */
+.prof-p {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-body);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--c-text-main);
+    word-break: break-all; /* Allows long text (like IDs) to wrap */
+}
+
+/* Button Container: Centers buttons and provides consistent spacing */
+.prof-btn-con, .pass-chg-btns {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: center; /* Centers buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
+
+/* Status and Error Messages (general, not field-specific) */
+.prof-status, .auth-status, .auth-field-error {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    text-align: center; /* Centers these general messages */
+}
+.prof-status { color: #22c55e; } /* Green for success messages */
+/* Note: prof-error is specifically handled within .prof-row for field-specific errors */
+.auth-field-error { color: #ef4444; } /* Red for authentication field errors */
+.auth-status { color: #3b82f6; } /* Blue for general authentication status */
+
+/* Section Headings within the profile settings (e.g., Change Password) */
+.prof-sect-head {
+    font-size: 1.125rem; /* Larger font size */
+    font-weight: 600;
+    color: var(--c-heading);
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-border);
+    text-align: center; /* Centers these sub-headings */
+}
+
+/* Modals (General) */
+.mod-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* On top of everything */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mod-bg.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mod-cont {
+    background-color: var(--c-main-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 90%; /* Responsive width */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.mod-bg.active .mod-cont {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mod-cont h3 {
+    text-align: center;
+}
+
+/* Auth Modal Specific - REMOVED */
+/* .auth-head, #auth-opt-box, .tab-btn, .tab-cont, .auth-field, .auth-field-label are now defunct */
+
+
+/* Export Section Specific */
+.exp-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.exp-range-opts {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.exp-date-inputs {
+    display: flex; /* Flexbox for horizontal layout */
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.exp-inst-text {
+    font-size: 0.85rem;
+    color: var(--c-text-light);
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background-color: #f0f4f8; /* Light blue background */
+    border-left: 4px solid var(--c-button-blue);
+    border-radius: 4px;
+}
+
+/* Flatpickr overrides */
+.flatpickr-calendar {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--c-border) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day:hover, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+    background: var(--c-button-main) !important;
+    border-color: var(--c-button-main) !important;
+    color: white !important;
+}
+.flatpickr-day.today {
+    border-color: var(--c-button-blue) !important;
+}
+.flatpickr-day.inRange {
+    background: rgba(79, 70, 229, 0.1) !important; /* Lighter indigo for range */
+    border-color: transparent !important;
+    color: var(--c-text-main) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-border) !important; /* Faded color for disabled dates */
+}
+.flatpickr-weekdays {
+    background-color: var(--c-table-head-bg) !important;
+}
+.flatpickr-weekday {
+    color: var(--c-text-light) !important;
+}
+
+
+/* Utility Classes (from Tailwind, recreated for consistency) */
+.full-h { height: 100%; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 0; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-auto { margin-right: auto; }
+.ml-auto { margin-left: auto; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-auto { margin-top: auto; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.md\:grid-cols-2 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-2 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.lg-grid-3 {
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+.xl-grid-2 {
+    @media (min-width: 1280px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.w-6 { width: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-lg { max-width: 32rem; }
+.min-w-150 { min-width: 150px; }
+.min-w-200 { min-width: 200px; }
+.round-full { border-radius: 9999px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.hidden { display: none !important; } /* IMPORTANT: Override any default display */
+.over-y-auto { overflow-y: auto; }
+.relative { position: relative; }
+.h-full { height: 100%; }
+.bg-white { background-color: #fff; }
+.bg-gray-50 { background-color: #f9fafb; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-indigo-600 { color: #4f46e5; }
+.text-indigo-700 { color: #4338ca; }
+.text-blue-600 { color: #2563eb; }
+.text-green-600 { color: #059669; }
+.text-red-600 { color: #dc2626; }
+.text-orange-500 { color: #f97316; }
+.text-sky-500 { color: #0ea5e9; }
+.form-radio {
+    /* Basic styling for radio buttons to match Tailwind form plugin */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    vertical-align: middle;
+    background-origin: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 100%;
+    height: 1em;
+    width: 1em;
+    color: var(--c-button-main);
+    background-color: #fff;
+    border-color: var(--c-input-border);
+    border-width: 1px;
+    box-shadow: 0 0 0 0 transparent;
+    transition: background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+.form-radio:checked {
+    background-color: var(--c-button-main);
+    border-color: var(--c-button-main);
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+.form-radio:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    nav {
+        width: 100%;
+        height: auto;
+        border-radius: 0; /* No rounded corners on small screens */
+        padding: 1rem;
+        flex-direction: row; /* Horizontal nav on mobile */
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed; /* Fix nav to top */
+        top: 0;
+        left: 0;
+        z-index: 500; /* Ensure it's above main content */
+    }
+
+    nav h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+        margin-right: 1rem;
+    }
+
+    nav ul {
+        display: none; /* Hide nav links by default on small screens */
+    }
+
+    .app-lay {
+        flex-direction: column; /* Stack main content below nav */
+        padding-top: 60px; /* Offset for fixed nav */
+    }
+
+    main {
+        padding: 1rem;
+        height: calc(100% - 60px); /* Adjust main height for fixed nav */
+    }
+
+    .filter-bar, .bud-form-wrap, .loan-form-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group, .loan-form-wrap > div, .bud-form-wrap > div {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .btn-main, .btn-blue, .btn-red, .btn-gray, .btn-orange, .btn {
+        width: 100%; /* Full width buttons on mobile */
+    }
+
+    .prof-btn-con, .pass-chg-btns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}

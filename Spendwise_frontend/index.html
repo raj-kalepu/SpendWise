@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise - Expense Tracker</title>
+    <!-- Google Fonts - Inter (for a modern, clean look) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- FileSaver.js for client-side file saving (used in export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <!-- Flatpickr CSS (for date pickers) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-body">
+
+    <div class="full-h flex app-lay">
+        <!-- Navigation Sidebar -->
+        <nav class="p-4 flex-shrink">
+            <h1 class="text-2xl font-bold text-center text-white mb-8">SpendWise</h1>
+            <ul id="main-nav" class="space-y-3">
+                <li><a href="#dashboard" class="nav-item active"><i class="fas fa-tachometer-alt w-6 mr-3"></i>Dashboard</a></li>
+                <li><a href="#transactions" class="nav-item"><i class="fas fa-exchange-alt w-6 mr-3"></i>Transactions</a></li>
+                <li><a href="#budgets" class="nav-item"><i class="fas fa-bullseye w-6 mr-3"></i>Budgets</a></li>
+                <li><a href="#loans" class="nav-item"><i class="fas fa-hand-holding-usd w-6 mr-3"></i>Loans</a></li>
+                <li><a href="#export" class="nav-item"><i class="fas fa-file-export w-6 mr-3"></i>Export</a></li>
+                <li><a href="#settings" class="nav-item"><i class="fas fa-cog w-6 mr-3"></i>Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow p-4 over-y-auto">
+            
+            <section id="dashboard" class="sect active">
+                <div class="dash-head">
+                    <h2 class="head-3xl">Dashboard</h2>
+                    <!-- Profile icon now always navigates to settings, no auth prompt -->
+                    <button id="dash-prof-icon" class="p-2 round-full hover-gray-100 hover-text-gray-800 focus-no-outline">
+                        <i class="fas fa-user-circle text-3xl"></i>
+                    </button>
+                </div>
+                <div id="wel-msg-con" class="wel-con">
+                    <span id="wel-msg">Welcome to SpendWise! Manage your finances here.</span>
+                </div>
+                
+                <div class="grid grid-1 md-grid-2 lg-grid-3 gap-6 mb-8">
+                    <div class="box p-6">
+                        <h3 class="text-gray-500 mb-2">Total Income</h3>
+                        <p id="sum-inc" class="sum-val sum-inc">₹ 0.00</p>
+                    </div>
+                    <div class="box p-6">
+                        <h3 class="text-gray-500 mb-2">Total Expenses</h3>
+                        <p id="sum-exp" class="sum-val sum-exp">₹ 0.00</p>
+                    </div>
+                    <div class="box p-6">
+                        <h3 class="text-gray-500 mb-2">Net Balance</h3>
+                        <p id="sum-bal" class="sum-val sum-bal">₹ 0.00</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-1 lg-grid-2 gap-6 mb-8">
+                    <div class="box p-6">
+                        <h3 class="alert-wrap"><i class="fas fa-exclamation-triangle text-orange-500 alert-icon"></i>Budget Alerts</h3>
+                        <div id="dash-bud-alerts" class="alert-text"></div>
+                    </div>
+                    <div class="box p-6">
+                        <h3 class="alert-wrap"><i class="fas fa-bell text-sky-500 alert-icon"></i>Loan Reminders</h3>
+                        <div id="dash-loan-rem" class="alert-text"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-1 xl-grid-2 gap-8">
+                    <div class="box p-6">
+                           <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">Spending by Category</h3>
+                         <div class="chart-box">
+                             <canvas id="exp-pie-chart"></canvas>
+                         </div>
+                    </div>
+                    <div class="box p-6">
+                        <h3 class="text-xl font-semibold text-center mb-4 text-gray-800">Monthly Trends</h3>
+                        <div class="chart-box">
+                            <canvas id="trend-bar-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="transactions" class="sect">
+                <h2 class="head-3xl mb-2">Transactions</h2>
+                <p class="mb-6 text-gray-600">Add new income or expenses, and review your transaction history. Use the filters to find exactly what you're looking for.</p>
+                
+                <div class="box p-6 mb-6">
+                    <div class="filter-bar">
+                        <div class="filter-group min-w-150">
+                            <label for="filt-start-date" class="filter-label">Start Date</label>
+                            <input type="date" id="filt-start-date" class="filter-inp date-input"> <!-- Added date-input class -->
+                        </div>
+                          <div class="filter-group min-w-150">
+                            <label for="filt-end-date" class="filter-label">End Date</label>
+                            <input type="date" id="filt-end-date" class="filter-inp date-input"> <!-- Added date-input class -->
+                        </div>
+                        <div class="filter-group min-w-200">
+                            <label for="filt-keyword" class="filter-label">Search</label>
+                            <input type="text" id="filt-keyword" placeholder="Description, category..." class="filter-inp">
+                        </div>
+                        <button id="add-trans-btn" class="btn-main px-4 py-2 flex items-center justify-center"><i class="fas fa-plus mr-2"></i> Add New</button>
+                    </div>
+                </div>
+                
+                <div class="tbl-wrap box">
+                    <table class="w-full text-left text-gray-700">
+                        <thead class="tbl-head">
+                            <tr>
+                                <th class="p-4 text-sm font-semibold uppercase track-wide">Date</th>
+                                <th class="p-4 text-sm font-semibold uppercase track-wide">Description</th>
+                                <th class="p-4 text-sm font-semibold uppercase track-wide">Category</th>
+                                <th class="p-4 text-right text-sm font-semibold uppercase track-wide">Amount</th>
+                                <th class="p-4 text-center text-sm font-semibold uppercase track-wide">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trans-tbl-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="budgets" class="sect">
+                <h2 class="head-3xl mb-2">Budgets</h2>
+                <p class="mb-6 text-gray-600">Set monthly spending goals for different categories to stay on track. Progress bars show how much you've spent against your budget.</p>
+                   <div class="box p-6 mb-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Set a New Budget</h3>
+                    <form id="bud-form" class="bud-form-wrap">
+                        <div class="filter-group min-w-200">
+                               <label for="bud-cat" class="filter-label">Category</label>
+                               <input type="text" id="bud-cat" placeholder="e.g., Groceries" required class="filter-inp">
+                        </div>
+                        <div class="filter-group min-w-150">
+                               <label for="bud-amt" class="filter-label">Amount</label>
+                               <input type="number" id="bud-amt" placeholder="500" required class="filter-inp">
+                        </div>
+                        <button type="submit" class="btn-main px-4 py-2 flex items-center justify-center h-full">Set Budget</button>
+                    </form>
+                   </div>
+                   <div id="bud-list" class="space-y-4"></div>
+            </section>
+
+            <section id="loans" class="sect">
+                <h2 class="head-3xl mb-2">Loans & Debts</h2>
+                   <p class="mb-6 text-gray-600">Keep track of money you've borrowed or lent. Mark items as paid to keep your records accurate.</p>
+                <div class="box p-6 mb-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Add a New Loan/Debt</h3>
+                    <form id="loan-form" class="loan-form-wrap">
+                        <div class="lg-col-1">
+                            <label for="loan-lend" class="filter-label">Lender/Borrower</label>
+                            <input type="text" id="loan-lend" required class="filter-inp" placeholder="e.g., John Doe">
+                        </div>
+                        <div>
+                               <label for="loan-amt" class="filter-label">Amount</label>
+                            <input type="number" id="loan-amt" required class="filter-inp" placeholder="1000">
+                        </div>
+                        <div>
+                               <label for="loan-due" class="filter-label">Due Date</label>
+                            <input type="date" id="loan-due" required class="filter-inp date-input"> <!-- Added date-input class -->
+                        </div>
+                        <button type="submit" class="btn-main px-4 py-2 flex items-center justify-center h-full w-full mt-auto">Add Loan</button>
+                    </form>
+                </div>
+                   <div class="tbl-wrap box">
+                    <table class="w-full text-left text-gray-700">
+                        <thead class="tbl-head">
+                            <tr>
+                                <th class="p-4 text-sm font-semibold uppercase track-wide">Lender/Borrower</th>
+                                <th class="p-4 text-sm font-semibold uppercase track-wide">Amount</th>
+                                <th class="p-4 text-sm font-semibold uppercase track-wide">Due Date</th>
+                                <th class="p-4 text-center text-sm font-semibold uppercase track-wide">Status</th>
+                                <th class="p-4 text-center text-sm font-semibold uppercase track-wide">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loan-tbl-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="export" class="sect">
+                <h2 class="head-3xl mb-2">Export Data</h2>
+                <p class="mb-6 text-gray-600">Download your financial data for your records or for use in other applications like spreadsheets.</p>
+                <div class="box p-6 max-w-lg ml-auto mr-auto">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Export Options</h3>
+                    <div class="mb-4">
+                        <label class="exp-label">Select Date Range:</label>
+                        <div class="exp-range-opts mb-3">
+                            <label class="flex items-center">
+                                <input type="radio" name="export-range" value="all" checked class="mr-2">
+                                Entire Transactions
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="export-range" value="custom" class="mr-2">
+                                Custom Date Range
+                            </label>
+                        </div>
+                        <!-- Date Inputs: Initially hidden by the 'hidden' class -->
+                        <div id="custom-date-range-inputs" class="exp-date-inputs hidden">
+                            <div class="flex-grow">
+                                <label for="exp-start-date" class="filter-label text-xs">Start Date:</label>
+                                <input type="text" id="exp-start-date" class="filter-inp date-input">
+                            </div>
+                            <div class="flex-grow">
+                                <label for="exp-end-date" class="filter-label text-xs">End Date:</label>
+                                <input type="text" id="exp-end-date" class="filter-inp date-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="exp-format" class="exp-label">Choose Export Format:</label>
+                        <select id="exp-format" class="w-full p-2 inp">
+                            <option value="pdf">PDF (Printable Report)</option>
+                            <option value="doc">DOC (Printable Report)</option>
+                            <option value="excel">Excel Compatible CSV</option>
+                            <option value="csv">CSV (Comma Separated Values)</option>
+                        </select>
+                    </div>
+                    <button id="exp-btn" class="w-full btn-main p-3 flex items-center justify-center">
+                        <i class="fas fa-download mr-2"></i> Export
+                    </button>
+                    <p id="exp-inst" class="exp-inst-text hidden">
+                        For PDF/DOC: A new tab will open with your report. Use your browser's print function (Ctrl+P or Cmd+P) to "Save as PDF" or copy-paste into a document editor.
+                    </p>
+                </div>
+            </section>
+
+            <section id="settings" class="sect">
+                <h2 class="head-3xl mb-2">Settings</h2>
+                <p class="mb-6 text-gray-600">Adjust application preferences here.</p>
+
+                <div class="box p-6 mb-6 currency-settings-box">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Currency Settings</h3>
+                    <div class="currency-input-group">
+                        <label for="curr-sel" class="prof-field-label">Select your preferred currency:</label>
+                        <select id="curr-sel" class="p-2 inp compact-currency-select">
+                            </select>
+                    </div>
+                </div>
+
+                <div id="prof-set-box" class="box p-6 mb-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Profile Settings</h3>
+                    
+                    <!-- Profile details for logged-in users (now always visible for "PublicUser") -->
+                    <div id="logged-prof-det">
+                        <!-- Display Mode -->
+                        <div id="prof-disp">
+                            <p class="prof-field-label">Your User ID:</p>
+                            <p id="user-id-disp" class="prof-p mb-3"></p>
+
+                            <p class="prof-field-label">Email:</p>
+                            <p id="email-disp" class="prof-p mb-3"></p>
+
+                            <p class="prof-field-label">Username:</p>
+                            <p id="user-disp" class="prof-p mb-3"></p>
+
+                            <p class="prof-field-label">Mobile Number:</p>
+                            <p id="mob-disp" class="prof-p mb-3"></p>
+
+                            <div class="prof-btn-con">
+                                <button id="edit-prof-btn" class="btn-blue py-2 px-4"><i class="fas fa-user-edit mr-2"></i> Edit Profile</button>
+                                <!-- Logout button removed as authentication is removed -->
+                            </div>
+                        </div>
+
+                        <!-- Profile Edit Section (hidden by default) -->
+                        <div id="prof-edit" class="hidden">
+                            <div class="prof-field">
+                                <label class="prof-field-label">User ID:</label>
+                                <p id="user-id-edit" class="prof-p"></p>
+                            </div>
+                            <div class="prof-field">
+                                <label for="prof-em-inp" class="prof-field-label">Email:</label>
+                                <input type="email" id="prof-em-inp" class="inp w-full" placeholder="Your email">
+                                <p id="em-err" class="prof-error"></p>
+                            </div>
+                            <div class="prof-field">
+                                <label for="prof-user-inp" class="prof-field-label">Username:</label>
+                                <input type="text" id="prof-user-inp" class="inp w-full" placeholder="Your username">
+                                <p id="user-err" class="prof-error"></p>
+                            </div>
+                            <div class="prof-field">
+                                <label for="prof-mob-inp" class="prof-field-label">Mobile Number:</label>
+                                <input type="text" id="prof-mob-inp" class="inp w-full" placeholder="Your mobile number">
+                            </div>
+                            
+                            <p id="prof-save-stat" class="prof-status text-center"></p>
+
+                            <div class="flex gap-4 mt-6">
+                                <button id="save-prof-btn" class="btn-main py-2 px-4 w-full"><i class="fas fa-save mr-2"></i> Save Changes</button>
+                            </div>
+                            
+                            <h4 class="prof-sect-head mt-6">Change Password</h4>
+                            <div class="prof-field">
+                                <label for="curr-pass-inp" class="prof-field-label">Current Password:</label>
+                                <input type="password" id="curr-pass-inp" class="inp w-full">
+                            </div>
+                            <div class="prof-field">
+                                <label for="new-pass-inp" class="prof-field-label">New Password:</label>
+                                <input type="password" id="new-pass-inp" class="inp w-full">
+                            </div>
+                            <div class="prof-field">
+                                <label for="conf-pass-inp" class="prof-field-label">Confirm New Password:</label>
+                                <input type="password" id="conf-pass-inp" class="inp w-full">
+                            </div>
+                            <p id="pass-stat" class="prof-status text-center"></p>
+                            <div class="pass-chg-btns">
+                                <button id="chg-pass-btn" class="btn-orange py-2 px-4"><i class="fas fa-key mr-2"></i> Change Password</button>
+                                <button id="cancel-edit-btn" class="btn-gray py-2 px-4"><i class="fas fa-times-circle mr-2"></i> Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div id="trans-mod" class="mod-bg hidden">
+        <div class="mod-cont">
+            <h3 id="mod-title" class="text-2xl font-bold mb-4 text-gray-800">Add Transaction</h3>
+            <form id="trans-form">
+                <input type="hidden" id="trans-id">
+                <div class="space-y-4">
+                    <div class="prof-field">
+                        <label for="trans-type" class="prof-field-label">Type</label>
+                        <select id="trans-type" class="w-full mt-1 inp">
+                            <option value="Expense">Expense</option>
+                            <option value="Income">Income</option>
+                        </select>
+                    </div>
+                    <div class="prof-field">
+                        <label for="trans-desc" class="prof-field-label">Description</label>
+                        <input type="text" id="trans-desc" required class="w-full mt-1 inp">
+                    </div>
+                    <div class="prof-field">
+                        <label for="trans-cat" class="prof-field-label">Category</label>
+                        <input type="text" id="trans-cat" required class="w-full mt-1 inp" placeholder="e.g., Food, Utilities">
+                    </div>
+                    <div class="prof-field">
+                        <label for="trans-amt" class="prof-field-label">Amount</label>
+                        <input type="number" id="trans-amt" required min="0.01" step="0.01" class="w-full mt-1 inp">
+                    </div>
+                    <div class="prof-field">
+                        <label for="trans-date" class="prof-field-label">Date</label>
+                        <input type="date" id="trans-date" required class="w-full mt-1 inp date-input"> <!-- Added date-input class -->
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="mod-cancel-btn" class="btn-gray px-4 py-2">Cancel</button>
+                    <button type="submit" class="px-4 py-2 btn-main">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loan Details Modal -->
+    <div id="loan-det-mod" class="mod-bg hidden">
+        <div class="mod-cont">
+            <h3 id="loan-mod-title" class="text-2xl font-bold mb-4 text-gray-800">Loan Details</h3>
+            <form id="loan-det-form">
+                <input type="hidden" id="loan-det-id">
+                <div class="space-y-4">
+                    <div class="prof-field">
+                        <label for="loan-det-lend" class="prof-field-label">Lender/Borrower</label>
+                        <input type="text" id="loan-det-lend" required class="w-full mt-1 inp">
+                    </div>
+                    <div class="prof-field">
+                        <label for="loan-det-amt" class="prof-field-label">Amount</label>
+                        <input type="number" id="loan-det-amt" required min="0.01" step="0.01" class="w-full mt-1 inp">
+                    </div>
+                    <div class="prof-field">
+                        <label for="loan-det-due" class="prof-field-label">Due Date</label>
+                        <input type="date" id="loan-det-due" required class="w-full mt-1 inp date-input"> <!-- Added date-input class -->
+                    </div>
+                    <div id="loan-stat-btns" class="flex justify-start gap-3 mt-4">
+                        <!-- Mark Paid/Unmark Paid buttons will be inserted here dynamically -->
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="loan-mod-cancel" class="btn-gray px-4 py-2">Cancel</button>
+                    <button type="submit" class="px-4 py-2 btn-main">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal (for delete actions) -->
+    <div id="confirm-mod" class="mod-bg hidden">
+        <div class="mod-cont max-w-sm">
+            <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">Confirm Action</h3>
+            <p id="confirm-msg" class="text-gray-700 mb-6 text-center">Are you sure you want to proceed?</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-cancel-btn" class="btn-gray px-4 py-2">Cancel</button>
+                <button id="confirm-proceed-btn" class="btn-red px-4 py-2">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login/Signup) - REMOVED -->
+    <!-- Authentication Prompt Modal - REMOVED -->
+    
+    <!-- Link to your external JavaScript file -->
+    <script src="script.js"></script>
+</body>
+</html>
