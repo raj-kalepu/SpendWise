@@ -1,12 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // IMPORTANT: This frontend JavaScript is designed to work with a Django backend API.
-    // It will NOT function correctly without a Django server running and exposing the
-    // specified API endpoints for authentication and data management.
-
-    // Base URL for your Django API.
-    // During development, this is typically http://localhost:8000
-    // In production, this will be your deployed Django API URL (e.g., https://api.yourdomain.com)
-    const BASE_URL = 'http://localhost:8000'; // <<< --- CONFIRM THIS IS CORRECT FOR YOUR BACKEND --- >>>
+    
+    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; /
 
     // --- GLOBAL STATE ---
     let state = {
@@ -18,18 +12,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£',
             'AUD': 'A$', 'CAD': 'C$', 'CHF': 'CHF', 'CNY': '¥'
         },
-        // For unauthenticated app, always set to a "public" user
         user: {
             id: 'public-user',
             email: 'public@spendwise.com',
             username: 'PublicUser',
             mobileNumber: 'N/A',
-            isAuthenticated: true // Always true as there's no login/logout
+            isAuthenticated: true 
         }
     };
 
     // --- UI Element References ---
-    // Removed authentication-specific UI elements
     const dashProfIcon = document.getElementById('dash-prof-icon');
 
     const profDisp = document.getElementById('prof-disp');
@@ -92,7 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- HELPER FUNCTIONS FOR API CALLS ---
-    // Simplified apiFetch - no token handling needed for unauthenticated app
     const apiFetch = async (url, options = {}) => {
         const headers = {
             'Content-Type': 'application/json',
@@ -174,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = () => {
         const d = new Date();
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so add 1
+        const month = String(d.getMonth() + 1).padStart(2, '0'); 
         const day = String(d.getDate()).padStart(2, '0');
         return `${day}-${month}-${year}`;
     };
@@ -304,7 +295,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderDashboard();
         renderBudgets();
         renderLoans();
-        // No need to update profile UI based on auth, as it's always "public"
         updateProfileDisplay();
     };
 
@@ -829,7 +819,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const selectedRange = document.querySelector('input[name="export-range"]:checked').value;
 
-        let exportUrl = `/api/export/${format}/`; // Base URL for export API
+        let exportUrl = `/api/export/${format}/`; 
         const params = new URLSearchParams();
 
         if (selectedRange === 'custom') {
@@ -967,8 +957,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            // Send PATCH request to update user profile (even for public user)
-            const response = await apiFetch('/api/user/profile/', { // This endpoint might need to be adjusted on backend
+            // Send PATCH request to update user profile 
+            const response = await apiFetch('/api/user/profile/', { 
                 method: 'PATCH',
                 body: JSON.stringify({
                     username: newUsername,
@@ -984,7 +974,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 state.user.mobileNumber = updatedUser.mobile_number;
 
                 profSaveStat.textContent = "Profile updated successfully!";
-                updateProfileDisplay(); // Update UI based on new profile data
+                updateProfileDisplay(); 
                 toggleProfileEditMode(false);
             } else {
                 const errorData = await response.json();
@@ -998,7 +988,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Event listener for changing password (removed functionality, but keeping button for now)
+    // Event listener for changing password
     chgPassBtn.addEventListener('click', async () => {
         passStat.textContent = "Password change is not available in this unauthenticated mode.";
         currPassInp.value = '';
