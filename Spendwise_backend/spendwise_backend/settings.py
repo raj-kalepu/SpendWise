@@ -136,9 +136,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",      
     "http://127.0.0.1:5500",
 
-    "https://spendwise-beryl.vercel.app", # Example from your logs
+    "https://spendwise-beryl.vercel.app", 
     "https://spendwise-4xtzfvzq3-gowtham-raj-kalepus-projects.vercel.app",
     "https://spendwise-ico10raih-gowtham-raj-kalepus-projects.vercel.app",
+    "https://spendwise-git-main-gowtham-raj-kalepus-projects.vercel.app",
+    "https://spendwise-67rmf89dy-gowtham-raj-kalepus-projects.vercel.app",
 ]
 
 CORS_ALLOW_METHODS = [
