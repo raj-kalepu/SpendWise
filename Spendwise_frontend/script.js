@@ -130,10 +130,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Main function to trigger data fetch and render
+    // Main function to trigger data fetch from backend and update state
+    const fetchDataFromBackend = async () => {
+        try {
+            const [transResponse, budResponse, loanResponse] = await Promise.all([
+                apiFetch('/api/transactions/'),
+                apiFetch('/api/budgets/'),
+                apiFetch('/api/loans/')
+            ]);
+
+            if (transResponse.ok) {
+                state.transactions = transResponse.data;
+                console.log('Transactions fetched:', state.transactions.length);
+            } else {
+                console.error('Failed to fetch transactions:', transResponse.data);
+            }
+
+            if (budResponse.ok) {
+                state.budgets = budResponse.data;
+                console.log('Budgets fetched:', state.budgets.length);
+            } else {
+                console.error('Failed to fetch budgets:', budResponse.data);
+            }
+
+            if (loanResponse.ok) {
+                state.loans = loanResponse.data;
+                console.log('Loans fetched:', state.loans.length);
+            } else {
+                console.error('Failed to fetch loans:', loanResponse.data);
+            }
+
+            renderAll(); // Render after all data is fetched and state is updated
+        } catch (error) {
+            console.error('Error during fetchDataFromBackend:', error);
+            alert('An error occurred while fetching data from the backend. Please check your console.');
+        }
+    };
+
+    // Wrapper function for initial data load and re-renders
     const fetchAndRenderData = () => {
         fetchDataFromBackend();
     };
+
 
     // --- UTILITY FUNCTIONS ---
     // Formats a date string into a more readable format (e.g., "Jun 23, 2025")
@@ -215,7 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openLoanDetMod = (loan) => {
         loanModTitle.textContent = 'Edit Loan';
         document.getElementById('loan-det-id').value = loan.id;
-        document.getElementById('loan-det-lend').value = loan.lender; // Changed from loan.lender_borrower to loan.lender
+        document.getElementById('loan-det-lend').value = loan.lender;
         document.getElementById('loan-det-amt').value = loan.amount;
         document.getElementById('loan-det-due').value = loan.due_date;
 
@@ -415,7 +453,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.className = 'tbl-row';
 
             row.innerHTML = `
-                <td class="p-4">${l.lender}</td> <td class="p-4">${formatCurrency(l.amount)}</td>
+                <td class="p-4">${l.lender}</td>
+                <td class="p-4">${formatCurrency(l.amount)}</td>
                 <td class="p-4">${formatDate(l.due_date)}</td>
                 <td class="p-4 text-center"><span class="loan-status-tag ${statusClass}">${l.paid ? 'Paid' : 'Pending'}</span></td>
                 <td class="p-4 text-center">
@@ -448,7 +487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
         state.loans.filter(l => !l.paid && new Date(l.due_date + 'T00:00:00') <= sevenDaysFromNow).forEach(l => {
             loanAlertsFound = true;
-            dashLoanRem.innerHTML += `<p class="alert-item text-sky-600">Loan from <strong class="font-semibold">${l.lender}</strong> of ${formatCurrency(l.amount)} is due on ${formatDate(l.due_date)}.</p>`; // Changed from l.lender_borrower to l.lender
+            dashLoanRem.innerHTML += `<p class="alert-item text-sky-600">Loan from <strong class="font-semibold">${l.lender}</strong> of ${formatCurrency(l.amount)} is due on ${formatDate(l.due_date)}.</p>`;
         });
         if (!loanAlertsFound) dashLoanRem.innerHTML = `<p class="alert-no-data">No loans due soon.</p>`;
     };
@@ -680,7 +719,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loan-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const loanData = {
-            lender: document.getElementById('loan-lend').value, // Changed from lender_borrower to lender
+            lender: document.getElementById('loan-lend').value,
             amount: parseFloat(document.getElementById('loan-amt').value),
             due_date: document.getElementById('loan-due').value,
             paid: false,
@@ -742,7 +781,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const id = document.getElementById('loan-det-id').value;
         const updatedLoanData = {
-            lender: document.getElementById('loan-det-lend').value, // Changed from lender_borrower to lender
+            lender: document.getElementById('loan-det-lend').value,
             amount: parseFloat(document.getElementById('loan-det-amt').value),
             due_date: document.getElementById('loan-det-due').value,
         };
