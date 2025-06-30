@@ -114,9 +114,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Try to parse JSON error, but fall back to text if it's not JSON (e.g., HTML 404)
                 let errorData;
                 try {
-                    errorData = await response.json();
+                    // Clone response to safely attempt reading body multiple times if needed
+                    const errorResponseClone = response.clone();
+                    errorData = await response.json(); // Use original response for first attempt
                 } catch (e) {
-                    errorData = await response.text(); // Get raw text if JSON parsing fails
+                    errorData = await errorResponseClone.text(); // Use clone for second attempt
                 }
                 console.error(`API Fetch Error: ${response.status} for ${url}`, errorData);
                 // Return structured error for better alert messages
@@ -139,25 +141,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 apiFetch('/api/loans/')
             ]);
 
-            if (transResponse.ok) {
+            // Ensure data is an array before assigning to state
+            if (transResponse.ok && Array.isArray(transResponse.data)) {
                 state.transactions = transResponse.data;
                 console.log('Transactions fetched:', state.transactions.length);
             } else {
-                console.error('Failed to fetch transactions:', transResponse.data);
+                state.transactions = []; // Default to empty array to prevent TypeError
+                console.error('Failed to fetch transactions or received non-array data:', transResponse.data);
             }
 
-            if (budResponse.ok) {
+            if (budResponse.ok && Array.isArray(budResponse.data)) {
                 state.budgets = budResponse.data;
                 console.log('Budgets fetched:', state.budgets.length);
             } else {
-                console.error('Failed to fetch budgets:', budResponse.data);
+                state.budgets = []; // Default to empty array
+                console.error('Failed to fetch budgets or received non-array data:', budResponse.data);
             }
 
-            if (loanResponse.ok) {
+            if (loanResponse.ok && Array.isArray(loanResponse.data)) {
                 state.loans = loanResponse.data;
                 console.log('Loans fetched:', state.loans.length);
             } else {
-                console.error('Failed to fetch loans:', loanResponse.data);
+                state.loans = []; // Default to empty array
+                console.error('Failed to fetch loans or received non-array data:', loanResponse.data);
             }
 
             renderAll(); // Render after all data is fetched and state is updated
@@ -183,7 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return dateString;
     };
 
-    // Returns today's date in YYYY-MM-DD format for input default
+    // Returns today's date inYYYY-MM-DD format for input default
     const todayYYYYMMDD = () => {
         const d = new Date();
         const year = d.getFullYear();
@@ -851,9 +857,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) {
                 let errorData;
                 try {
+                    // Clone response to safely attempt reading body multiple times if needed
+                    const errorResponseClone = response.clone();
                     errorData = await response.json(); // Try JSON first for backend errors
                 } catch (e) {
-                    errorData = await response.text(); // Fallback to text
+                    // Fallback to text if JSON parsing fails or if the response is not JSON
+                    errorData = await errorResponseClone.text();
                 }
                 console.error(`Export Error (Status: ${response.status}) for ${fullExportUrl}:`, errorData);
                 alert(`Failed to generate report (Status: ${response.status}): ${JSON.stringify(errorData)}`);
