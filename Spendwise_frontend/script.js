@@ -63,11 +63,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addTransBtn = document.getElementById('add-trans-btn');
     const modCancelBtn = document.getElementById('mod-cancel-btn');
 
+    // Budget Modal elements
+    const budMod = document.getElementById('bud-mod');
+    const budModTitle = document.getElementById('bud-mod-title');
+    const budEditForm = document.getElementById('bud-edit-form');
+    const budModCancelBtn = document.getElementById('bud-mod-cancel-btn');
+    const budIdInput = document.getElementById('bud-id');
+    const budCategoryEditInput = document.getElementById('bud-cat-edit');
+    const budAmountEditInput = document.getElementById('bud-amt-edit');
+    const budDeleteBtn = document.getElementById('bud-delete-btn'); // New delete button in budget modal
+
     const loanDetMod = document.getElementById('loan-det-mod');
     const loanModTitle = document.getElementById('loan-mod-title');
     const loanDetForm = document.getElementById('loan-det-form');
     const loanModCancel = document.getElementById('loan-mod-cancel');
     const loanStatBtns = document.getElementById('loan-stat-btns');
+    const loanDeleteBtn = document.getElementById('loan-delete-btn'); // New delete button in loan modal
 
     // Custom Confirmation Modal elements
     const confirmMod = document.getElementById('confirm-mod');
@@ -111,29 +122,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (!response.ok) {
-                // Try to parse JSON error, but fall back to text if it's not JSON (e.g., HTML 404)
                 let errorData;
-                let errorResponseClone; // Declare here so it's accessible in catch
+                let errorResponseClone;
                 try {
-                    // Clone response to safely attempt reading body multiple times if needed
                     errorResponseClone = response.clone();
-                    errorData = await response.json(); // Use original response for first attempt
+                    errorData = await response.json();
                 } catch (e) {
-                    errorData = await errorResponseClone.text(); // Use clone for second attempt
+                    errorData = await errorResponseClone.text();
                 }
                 console.error(`API Fetch Error: ${response.status} for ${url}`, errorData);
-                // Return structured error for better alert messages
                 return { ok: false, status: response.status, data: errorData };
             }
             return { ok: true, status: response.status, data: await response.json() };
         } catch (error) {
             console.error(`Network or Fetch Error for ${url}:`, error);
-            // Return structured error for better alert messages
-            return { ok: false, status: 0, data: error.message }; // status 0 for network errors
+            return { ok: false, status: 0, data: error.message };
         }
     };
 
-    // Main function to trigger data fetch from backend and update state
     // Main function to trigger data fetch from backend and update state
     const fetchDataFromBackend = async () => {
         try {
@@ -145,27 +151,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Ensure data is an array from the 'results' property of paginated responses
             if (transResponse.ok && transResponse.data && Array.isArray(transResponse.data.results)) {
-                state.transactions = transResponse.data.results; // Extract the 'results' array
+                state.transactions = transResponse.data.results;
                 console.log('Transactions fetched:', state.transactions.length);
             } else {
-                state.transactions = []; // Default to empty array to prevent TypeError
-                // console.error('Failed to fetch transactions or received unexpected data structure:', transResponse.data); // <--- COMMENT OUT OR REMOVE THIS LINE
+                state.transactions = [];
+                // console.error('Failed to fetch transactions or received unexpected data structure:', transResponse.data); // Debugging line, can be commented out
             }
 
             if (budResponse.ok && budResponse.data && Array.isArray(budResponse.data.results)) {
-                state.budgets = budResponse.data.results; // Extract the 'results' array
+                state.budgets = budResponse.data.results;
                 console.log('Budgets fetched:', state.budgets.length);
             } else {
-                state.budgets = []; // Default to empty array
-                // console.error('Failed to fetch budgets or received unexpected data structure:', budResponse.data); // <--- COMMENT OUT OR REMOVE THIS LINE
+                state.budgets = [];
+                // console.error('Failed to fetch budgets or received unexpected data structure:', budResponse.data); // Debugging line, can be commented out
             }
 
             if (loanResponse.ok && loanResponse.data && Array.isArray(loanResponse.data.results)) {
-                state.loans = loanResponse.data.results; // Extract the 'results' array
+                state.loans = loanResponse.data.results;
                 console.log('Loans fetched:', state.loans.length);
             } else {
-                state.loans = []; // Default to empty array
-                // console.error('Failed to fetch loans or received unexpected data structure:', loanResponse.data); // <--- COMMENT OUT OR REMOVE THIS LINE
+                state.loans = [];
+                // console.error('Failed to fetch loans or received unexpected data structure:', loanResponse.data); // Debugging line, can be commented out
             }
 
             renderAll(); // Render after all data is fetched and state is updated
@@ -257,6 +263,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.target === transMod) closeTransMod();
     });
 
+    // Opens the budget modal for editing
+    const openBudMod = (budget) => {
+        budEditForm.reset();
+        budModTitle.textContent = 'Edit Budget';
+        budIdInput.value = budget.id;
+        budCategoryEditInput.value = budget.category;
+        budAmountEditInput.value = budget.amount;
+        budMod.classList.remove('hidden');
+        budMod.classList.add('active');
+        budDeleteBtn.dataset.id = budget.id; // Set ID for delete button
+    };
+
+    const closeBudMod = () => {
+        budMod.classList.remove('active');
+        budMod.classList.add('hidden');
+    };
+
+    budMod.addEventListener('click', (e) => {
+        if (e.target === budMod) closeBudMod();
+    });
+    budModCancelBtn.addEventListener('click', closeBudMod);
+
+
     // Opens the loan details modal for viewing/editing a loan
     const openLoanDetMod = (loan) => {
         loanModTitle.textContent = 'Edit Loan';
@@ -265,7 +294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('loan-det-amt').value = loan.amount;
         document.getElementById('loan-det-due').value = loan.due_date;
 
-        loanStatBtns.innerHTML = '';
+        loanStatBtns.innerHTML = ''; // Clear previous buttons
         if (loan.paid) {
             const unmarkBtn = document.createElement('button');
             unmarkBtn.type = 'button';
@@ -281,6 +310,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             markPaidBtn.dataset.id = loan.id;
             loanStatBtns.appendChild(markPaidBtn);
         }
+        loanDeleteBtn.dataset.id = loan.id; // Set ID for delete button in modal
         loanDetMod.classList.add('active');
     };
 
@@ -439,6 +469,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="pb-bg">
                     <div class="pb-fill ${progressBarColorClass}" style="width: ${percentage}%; background-color: ${progressBarBgColor};"> ${percentage.toFixed(0)}%</div>
                 </div>
+                <div class="flex justify-end gap-2 mt-2">
+                    <button class="bud-edit-btn btn-sm btn-light" data-id="${b.id}"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="bud-delete-btn btn-sm btn-red" data-id="${b.id}"><i class="fas fa-trash"></i> Delete</button>
+                </div>
             `;
             budList.appendChild(div);
         });
@@ -457,7 +491,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const row = document.createElement('tr');
             const statusClass = l.paid ? 'loan-status-paid' : 'loan-status-pending';
 
-            const actionButtons = `<button class="loan-edit-btn" data-id="${l.id}"><i class="fas fa-edit"></i> Edit</button>`;
             row.className = 'tbl-row';
 
             row.innerHTML = `
@@ -466,7 +499,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="p-4">${formatDate(l.due_date)}</td>
                 <td class="p-4 text-center"><span class="loan-status-tag ${statusClass}">${l.paid ? 'Paid' : 'Pending'}</span></td>
                 <td class="p-4 text-center">
-                    ${actionButtons}
+                    <button class="loan-edit-btn" data-id="${l.id}"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="loan-mark-paid-btn btn-sm ${l.paid ? 'btn-blue' : 'btn-main'}" data-id="${l.id}">${l.paid ? 'Unmark Paid' : 'Mark Paid'}</button>
                 </td>
             `;
             loanTblBody.appendChild(row);
@@ -696,7 +730,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     filtKeyword.addEventListener('input', renderTransTbl);
 
 
-    // Budget Form Submission
+    // Budget Form Submission (for adding new budget)
     document.getElementById('bud-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const category = document.getElementById('bud-cat').value;
@@ -723,7 +757,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Loan Form
+    // Event delegation for Edit and Delete buttons on the budget list
+    document.getElementById('bud-list').addEventListener('click', async (e) => {
+        // Handle Edit budget button click
+        if (e.target.closest('.bud-edit-btn')) {
+            const btn = e.target.closest('.bud-edit-btn');
+            const id = btn.dataset.id;
+            const budget = state.budgets.find(b => String(b.id) === String(id));
+            if (budget) {
+                openBudMod(budget);
+            } else {
+                console.error('Budget not found for ID:', id, 'Current state.budgets:', state.budgets);
+                alert('Budget not found for editing. Check console for details.');
+            }
+        }
+        // Handle Delete budget button click
+        if (e.target.closest('.bud-delete-btn')) {
+            const btn = e.target.closest('.bud-delete-btn');
+            const id = btn.dataset.id;
+            openConfirmModal('Are you sure you want to delete this budget?', async (confirmed) => {
+                if (confirmed) {
+                    const response = await apiFetch(`/api/budgets/${id}/`, { method: 'DELETE' });
+                    if (response.ok) {
+                        fetchAndRenderData();
+                    } else {
+                        const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+                        console.error('Failed to delete budget:', errorMessage);
+                        alert(`Failed to delete budget (Status: ${response.status}): ${errorMessage}`);
+                    }
+                }
+            });
+        }
+    });
+
+    // Budget Edit Form Submission (inside the new bud-mod)
+    budEditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = budIdInput.value;
+        const updatedBudgetData = {
+            category: budCategoryEditInput.value,
+            amount: parseFloat(budAmountEditInput.value),
+        };
+
+        const response = await apiFetch(`/api/budgets/${id}/`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedBudgetData)
+        });
+
+        if (response.ok) {
+            closeBudMod();
+            fetchAndRenderData();
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error('Failed to save budget changes:', errorMessage);
+            alert(`Failed to save budget changes (Status: ${response.status}): ${errorMessage}`);
+        }
+    });
+
+    // Loan Form (for adding new loan)
     document.getElementById('loan-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const loanData = {
@@ -746,21 +837,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Event delegation for Edit Loan buttons on the loan table
+    // Event delegation for Edit AND Mark Paid/Unmark Paid buttons on the loan table
     document.getElementById('loan-tbl-body').addEventListener('click', async (e) => {
-        const editLoanBtn = e.target.closest('.loan-edit-btn');
-
-        if (editLoanBtn) {
-            const id = editLoanBtn.dataset.id;
-            const loan = state.loans.find(l => String(l.id) === String(id)); // Ensure string comparison
-            openLoanDetMod(loan);
+        // Handle Edit Loan button click
+        if (e.target.closest('.loan-edit-btn')) {
+            const btn = e.target.closest('.loan-edit-btn');
+            const id = btn.dataset.id;
+            const loan = state.loans.find(l => String(l.id) === String(id));
+            if (loan) {
+                openLoanDetMod(loan);
+            } else {
+                console.error('Loan not found for ID:', id, 'Current state.loans:', state.loans);
+                alert('Loan not found for editing. Check console for details.');
+            }
+        }
+        // Handle Mark Paid/Unmark Paid button click directly from table
+        if (e.target.closest('.loan-mark-paid-btn')) {
+            const btn = e.target.closest('.loan-mark-paid-btn');
+            const id = btn.dataset.id;
+            const loan = state.loans.find(l => String(l.id) === String(id));
+            if (loan) {
+                const newPaidStatus = !loan.paid; // Toggle current status
+                openConfirmModal(`Are you sure you want to mark this loan as ${newPaidStatus ? 'Paid' : 'Pending'}?`, async (confirmed) => {
+                    if (confirmed) {
+                        const response = await apiFetch(`/api/loans/mark-paid/${id}/`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ paid: newPaidStatus })
+                        });
+                        if (response.ok) {
+                            fetchAndRenderData(); // Re-fetch to update status in UI
+                        } else {
+                            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+                            console.error('Failed to update loan status:', errorMessage);
+                            alert(`Failed to update loan status (Status: ${response.status}): ${errorMessage}`);
+                        }
+                    }
+                });
+            }
         }
     });
 
-    // Event delegation for Mark Paid/Unmark Paid buttons within loan details modal
+    // Event delegation for Mark Paid/Unmark Paid buttons within loan details modal (if opened via Edit)
     loanDetMod.addEventListener('click', async (e) => {
         const unmarkPaidBtn = e.target.closest('.unmark-paid-btn');
         const markPaidBtn = e.target.closest('.mark-paid-btn');
+        const deleteLoanBtn = e.target.closest('#loan-delete-btn'); // Specific ID for delete button in modal
+
         const loanId = document.getElementById('loan-det-id').value;
 
         if (unmarkPaidBtn || markPaidBtn) {
@@ -781,10 +903,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             });
+        } else if (deleteLoanBtn) { // Handle delete button in loan modal
+            const id = deleteLoanBtn.dataset.id;
+            openConfirmModal('Are you sure you want to delete this loan?', async (confirmed) => {
+                if (confirmed) {
+                    const response = await apiFetch(`/api/loans/${id}/`, { method: 'DELETE' });
+                    if (response.ok) {
+                        closeLoanDetMod(); // Close modal after successful delete
+                        fetchAndRenderData();
+                    } else {
+                        const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+                        console.error('Failed to delete loan:', errorMessage);
+                        alert(`Failed to delete loan (Status: ${response.status}): ${errorMessage}`);
+                    }
+                }
+            });
         }
     });
 
-    // Loan Details Form Submission (for updating lender/borrower, amount, due date)
+    // Loan Details Form Submission (for updating lender, amount, due date from modal)
     loanDetForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('loan-det-id').value;
@@ -858,14 +995,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!response.ok) {
                 let errorData;
-                let errorResponseClone; // Declare here so it's accessible in catch
+                let errorResponseClone = response.clone(); // Clone here before any read attempt
                 try {
-                    // Clone response to safely attempt reading body multiple times if needed
-                    errorResponseClone = response.clone();
                     errorData = await response.json(); // Try JSON first for backend errors
                 } catch (e) {
-                    // Fallback to text if JSON parsing fails or if the response is not JSON
-                    errorData = await errorResponseClone.text();
+                    errorData = await errorResponseClone.text(); // Fallback to text
                 }
                 console.error(`Export Error (Status: ${response.status}) for ${fullExportUrl}:`, errorData);
                 alert(`Failed to generate report (Status: ${response.status}): ${JSON.stringify(errorData)}`);
