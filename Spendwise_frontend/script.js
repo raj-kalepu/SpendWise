@@ -1142,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
             console.error('Failed to save profile:', errorMessage);
             if (response.data.username) userErr.textContent = response.data.username[0];
-            if (response.data.email) emErr.textContent = response.data.email[0];
+            if (response.data.email) emErr.textContent = emErr.textContent = response.data.email[0];
             profSaveStat.textContent = `Failed to save changes (Status: ${response.status}): ${errorMessage}`;
         }
     });
