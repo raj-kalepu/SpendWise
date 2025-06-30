@@ -138,34 +138,34 @@
             </section>
 
             <section id="budget" class="sect">
-                <div class="content-wrapper">
-                    <h2 class="sect-head"><i class="fas fa-money-check"></i> Budgets</h2>
-            
-                    <div class="box add-budget-card">
-                        <h3 id="bud-form-title">Add New Budget</h3>
-                        <form id="bud-form">
-                            <div class="form-group">
-                                <label for="bud-cat">Category:</label>
-                                <input type="text" id="bud-cat" placeholder="e.g., Groceries" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="bud-amt">Budget Amount:</label>
-                                <input type="number" id="bud-amt" step="0.01" placeholder="0.00" required>
-                            </div>
-                            <div class="form-actions">
-                                <button type="submit" id="bud-submit-btn" class="btn-main">Add Budget</button>
-                                <button type="button" id="bud-cancel-edit-btn" class="btn-secondary hidden">Cancel Edit</button>
-                            </div>
-                        </form>
-                    </div>
-            
-                    <div class="budget-list-container">
-                        <h3>Your Budgets</h3>
-                        <div id="bud-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            </div>
-                    </div>
+    <div class="content-wrapper">
+        <h2 class="sect-head"><i class="fas fa-money-check"></i> Budgets</h2>
+
+        <div class="box add-budget-card">
+            <h3 id="bud-form-title">Add New Budget</h3>
+            <form id="bud-form">
+                <div class="form-group">
+                    <label for="bud-cat">Category:</label>
+                    <input type="text" id="bud-cat" placeholder="e.g., Groceries" required>
                 </div>
-            </section>
+                <div class="form-group">
+                    <label for="bud-amt">Budget Amount:</label>
+                    <input type="number" id="bud-amt" step="0.01" placeholder="0.00" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="bud-submit-btn" class="btn-main">Add Budget</button>
+                    <button type="button" id="bud-cancel-edit-btn" class="btn-secondary hidden">Cancel Edit</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="budget-list-container">
+            <h3>Your Budgets</h3>
+            <div id="bud-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+        </div>
+    </div>
+</section>
             
             <div id="trans-mod" class="modal hidden">...</div>
             <div id="loan-det-mod" class="modal hidden">...</div>
