@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Main function to trigger data fetch from backend and update state
+    // Main function to trigger data fetch from backend and update state
     const fetchDataFromBackend = async () => {
         try {
             const [transResponse, budResponse, loanResponse] = await Promise.all([
@@ -148,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Transactions fetched:', state.transactions.length);
             } else {
                 state.transactions = []; // Default to empty array to prevent TypeError
-                console.error('Failed to fetch transactions or received unexpected data structure:', transResponse.data);
+                // console.error('Failed to fetch transactions or received unexpected data structure:', transResponse.data); // <--- COMMENT OUT OR REMOVE THIS LINE
             }
 
             if (budResponse.ok && budResponse.data && Array.isArray(budResponse.data.results)) {
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Budgets fetched:', state.budgets.length);
             } else {
                 state.budgets = []; // Default to empty array
-                console.error('Failed to fetch budgets or received unexpected data structure:', budResponse.data);
+                // console.error('Failed to fetch budgets or received unexpected data structure:', budResponse.data); // <--- COMMENT OUT OR REMOVE THIS LINE
             }
 
             if (loanResponse.ok && loanResponse.data && Array.isArray(loanResponse.data.results)) {
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Loans fetched:', state.loans.length);
             } else {
                 state.loans = []; // Default to empty array
-                console.error('Failed to fetch loans or received unexpected data structure:', loanResponse.data);
+                // console.error('Failed to fetch loans or received unexpected data structure:', loanResponse.data); // <--- COMMENT OUT OR REMOVE THIS LINE
             }
 
             renderAll(); // Render after all data is fetched and state is updated
