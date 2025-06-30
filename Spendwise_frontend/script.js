@@ -113,9 +113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) {
                 // Try to parse JSON error, but fall back to text if it's not JSON (e.g., HTML 404)
                 let errorData;
+                let errorResponseClone; // Declare here so it's accessible in catch
                 try {
                     // Clone response to safely attempt reading body multiple times if needed
-                    const errorResponseClone = response.clone();
+                    errorResponseClone = response.clone();
                     errorData = await response.json(); // Use original response for first attempt
                 } catch (e) {
                     errorData = await errorResponseClone.text(); // Use clone for second attempt
@@ -141,29 +142,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 apiFetch('/api/loans/')
             ]);
 
-            // Ensure data is an array before assigning to state
-            if (transResponse.ok && Array.isArray(transResponse.data)) {
-                state.transactions = transResponse.data;
+            // Ensure data is an array from the 'results' property of paginated responses
+            if (transResponse.ok && transResponse.data && Array.isArray(transResponse.data.results)) {
+                state.transactions = transResponse.data.results; // Extract the 'results' array
                 console.log('Transactions fetched:', state.transactions.length);
             } else {
                 state.transactions = []; // Default to empty array to prevent TypeError
-                console.error('Failed to fetch transactions or received non-array data:', transResponse.data);
+                console.error('Failed to fetch transactions or received unexpected data structure:', transResponse.data);
             }
 
-            if (budResponse.ok && Array.isArray(budResponse.data)) {
-                state.budgets = budResponse.data;
+            if (budResponse.ok && budResponse.data && Array.isArray(budResponse.data.results)) {
+                state.budgets = budResponse.data.results; // Extract the 'results' array
                 console.log('Budgets fetched:', state.budgets.length);
             } else {
                 state.budgets = []; // Default to empty array
-                console.error('Failed to fetch budgets or received non-array data:', budResponse.data);
+                console.error('Failed to fetch budgets or received unexpected data structure:', budResponse.data);
             }
 
-            if (loanResponse.ok && Array.isArray(loanResponse.data)) {
-                state.loans = loanResponse.data;
+            if (loanResponse.ok && loanResponse.data && Array.isArray(loanResponse.data.results)) {
+                state.loans = loanResponse.data.results; // Extract the 'results' array
                 console.log('Loans fetched:', state.loans.length);
             } else {
                 state.loans = []; // Default to empty array
-                console.error('Failed to fetch loans or received non-array data:', loanResponse.data);
+                console.error('Failed to fetch loans or received unexpected data structure:', loanResponse.data);
             }
 
             renderAll(); // Render after all data is fetched and state is updated
@@ -856,9 +857,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!response.ok) {
                 let errorData;
+                let errorResponseClone; // Declare here so it's accessible in catch
                 try {
                     // Clone response to safely attempt reading body multiple times if needed
-                    const errorResponseClone = response.clone();
+                    errorResponseClone = response.clone();
                     errorData = await response.json(); // Try JSON first for backend errors
                 } catch (e) {
                     // Fallback to text if JSON parsing fails or if the response is not JSON
