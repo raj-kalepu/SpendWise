@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             username: 'PublicUser',
             mobileNumber: 'N/A',
             isAuthenticated: true // Always true as there's no login/logout
-        }
+        },
+        editingBudgetId: null // To track which budget is being edited
     };
 
     // --- UI Element References ---
@@ -63,15 +64,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const addTransBtn = document.getElementById('add-trans-btn');
     const modCancelBtn = document.getElementById('mod-cancel-btn');
 
-    // Budget Modal elements
-    const budMod = document.getElementById('bud-mod');
-    const budModTitle = document.getElementById('bud-mod-title');
-    const budEditForm = document.getElementById('bud-edit-form');
-    const budModCancelBtn = document.getElementById('bud-mod-cancel-btn');
-    const budIdInput = document.getElementById('bud-id');
-    const budCategoryEditInput = document.getElementById('bud-cat-edit');
-    const budAmountEditInput = document.getElementById('bud-amt-edit');
-    const budDeleteBtn = document.getElementById('bud-delete-btn'); // New delete button in budget modal
+    // Budget form elements (now unified for Add and Edit)
+    const budForm = document.getElementById('bud-form');
+    const budFormTitle = document.getElementById('bud-form-title');
+    const budCategoryInput = document.getElementById('bud-cat');
+    const budAmountInput = document.getElementById('bud-amt');
+    const budSubmitButton = document.getElementById('bud-submit-btn');
+    const budCancelEditButton = document.getElementById('bud-cancel-edit-btn');
+
 
     const loanDetMod = document.getElementById('loan-det-mod');
     const loanModTitle = document.getElementById('loan-mod-title');
@@ -262,28 +262,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     transMod.addEventListener('click', (e) => {
         if (e.target === transMod) closeTransMod();
     });
+    modCancelBtn.addEventListener('click', closeTransMod);
 
-    // Opens the budget modal for editing
-    const openBudMod = (budget) => {
-        budEditForm.reset();
-        budModTitle.textContent = 'Edit Budget';
-        budIdInput.value = budget.id;
-        budCategoryEditInput.value = budget.category;
-        budAmountEditInput.value = budget.amount;
-        budMod.classList.remove('hidden');
-        budMod.classList.add('active');
-        budDeleteBtn.dataset.id = budget.id; // Set ID for delete button
+
+    // Handles setting the budget form to 'Add' or 'Edit' mode
+    const setBudgetFormMode = (mode, budget = null) => {
+        state.editingBudgetId = null;
+        budCategoryInput.readOnly = false; // Enable category input for adding
+
+        if (mode === 'add') {
+            budFormTitle.textContent = 'Add New Budget';
+            budSubmitButton.textContent = 'Add Budget';
+            budForm.reset();
+            budCancelEditButton.classList.add('hidden');
+        } else { // 'edit' mode
+            budFormTitle.textContent = 'Edit Budget';
+            budSubmitButton.textContent = 'Save Changes';
+            budCategoryInput.value = budget.category;
+            budAmountInput.value = budget.amount;
+            budCategoryInput.readOnly = true; // Make category read-only when editing
+            budCancelEditButton.classList.remove('hidden');
+            state.editingBudgetId = budget.id;
+        }
     };
-
-    const closeBudMod = () => {
-        budMod.classList.remove('active');
-        budMod.classList.add('hidden');
-    };
-
-    budMod.addEventListener('click', (e) => {
-        if (e.target === budMod) closeBudMod();
-    });
-    budModCancelBtn.addEventListener('click', closeBudMod);
 
 
     // Opens the loan details modal for viewing/editing a loan
@@ -362,6 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderLoans();
         // No need to update profile UI based on auth, as it's always "public"
         updateProfileDisplay();
+        setBudgetFormMode('add'); // Reset budget form to 'add' mode after re-rendering
     };
 
     const renderDashboard = () => {
@@ -683,7 +685,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     addTransBtn.addEventListener('click', () => openTransMod('add'));
-    modCancelBtn.addEventListener('click', closeTransMod);
 
 
     // Event delegation for Edit and Delete buttons on the transaction table
@@ -730,32 +731,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     filtKeyword.addEventListener('input', renderTransTbl);
 
 
-    // Budget Form Submission (for adding new budget)
-    document.getElementById('bud-form').addEventListener('submit', async (e) => {
+    // Budget Form Submission (now handles both Add and Edit)
+    budForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const category = document.getElementById('bud-cat').value;
-        const amount = parseFloat(document.getElementById('bud-amt').value);
+        const category = budCategoryInput.value.trim();
+        const amount = parseFloat(budAmountInput.value);
 
-        // Check if budget for this category already exists
-        const existingBudget = state.budgets.find(b => b.category.toLowerCase() === category.toLowerCase());
-        if (existingBudget) {
-            alert(`Budget set for '${category}' already. Kindly edit if you want.`);
-            return; // Stop the function here
+        if (isNaN(amount) || amount <= 0) {
+            alert('Please enter a valid positive amount for the budget.');
+            return;
+        }
+        if (!category) {
+            alert('Budget category cannot be empty.');
+            return;
         }
 
-        const response = await apiFetch('/api/budgets/', {
-            method: 'POST',
-            body: JSON.stringify({ category, amount })
-        });
+        let response;
+        if (state.editingBudgetId) {
+            // Edit existing budget
+            response = await apiFetch(`/api/budgets/${state.editingBudgetId}/`, {
+                method: 'PUT',
+                body: JSON.stringify({ category, amount })
+            });
+        } else {
+            // Add new budget
+            // Check if budget for this category already exists before adding
+            const existingBudget = state.budgets.find(b => b.category.toLowerCase() === category.toLowerCase());
+            if (existingBudget) {
+                alert(`Budget for category '${category}' already exists. Use the 'Edit' button next to the budget to modify it.`);
+                return;
+            }
+            response = await apiFetch('/api/budgets/', {
+                method: 'POST',
+                body: JSON.stringify({ category, amount })
+            });
+        }
+
         if (response.ok) {
-            document.getElementById('bud-form').reset();
-            fetchAndRenderData();
+            fetchAndRenderData(); // Re-render everything, which also resets the form
         } else {
             const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
             console.error('Failed to save budget:', errorMessage);
             alert(`Failed to save budget (Status: ${response.status}): ${errorMessage}`);
         }
     });
+
+    // Event listener for the new Cancel Edit button on the budget form
+    budCancelEditButton.addEventListener('click', () => {
+        setBudgetFormMode('add'); // Reset form to add mode
+    });
+
 
     // Event delegation for Edit and Delete buttons on the budget list
     document.getElementById('bud-list').addEventListener('click', async (e) => {
@@ -765,7 +790,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const id = btn.dataset.id;
             const budget = state.budgets.find(b => String(b.id) === String(id));
             if (budget) {
-                openBudMod(budget);
+                setBudgetFormMode('edit', budget); // Set form to edit mode
             } else {
                 console.error('Budget not found for ID:', id, 'Current state.budgets:', state.budgets);
                 alert('Budget not found for editing. Check console for details.');
@@ -790,29 +815,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Budget Edit Form Submission (inside the new bud-mod)
-    budEditForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = budIdInput.value;
-        const updatedBudgetData = {
-            category: budCategoryEditInput.value,
-            amount: parseFloat(budAmountEditInput.value),
-        };
-
-        const response = await apiFetch(`/api/budgets/${id}/`, {
-            method: 'PUT',
-            body: JSON.stringify(updatedBudgetData)
-        });
-
-        if (response.ok) {
-            closeBudMod();
-            fetchAndRenderData();
-        } else {
-            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
-            console.error('Failed to save budget changes:', errorMessage);
-            alert(`Failed to save budget changes (Status: ${response.status}): ${errorMessage}`);
-        }
-    });
 
     // Loan Form (for adding new loan)
     document.getElementById('loan-form').addEventListener('submit', async (e) => {
@@ -1198,4 +1200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         navigateTo('#dashboard');
     }
+
+    // Initialize budget form to 'add' mode on page load
+    setBudgetFormMode('add');
 });
