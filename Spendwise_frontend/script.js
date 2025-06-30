@@ -1204,3 +1204,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize budget form to 'add' mode on page load
     setBudgetFormMode('add');
 });
+ 
