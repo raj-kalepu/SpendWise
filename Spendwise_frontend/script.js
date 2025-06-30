@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; 
+    // IMPORTANT: This frontend JavaScript is designed to work with a Django backend API.
+    // It will NOT function correctly without a Django server running and exposing the
+    // specified API endpoints for authentication and data management.
+
+    // Base URL for your Django API.
+    // During development, this is typically http://localhost:8000
+    // In production, this will be your deployed Django API URL (e.g., https://api.yourdomain.com)
+    const BASE_URL = 'https://spendwise-backend-87n6.onrender.com'; // <<< --- CONFIRM THIS IS CORRECT FOR YOUR BACKEND --- >>>
 
     // --- GLOBAL STATE ---
     let state = {
@@ -443,15 +449,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const percentage = Math.min((spent / b.amount) * 100, 100);
 
             let progressBarColorClass = 'bg-emerald-500';
-            let progressBarBgColor = 'var(--c-progress-good)';
+            let progressBarBgColor = '#34D399'; // Tailwind emerald-500
 
             if (percentage > 75) {
                 progressBarColorClass = 'bg-orange-500';
-                progressBarBgColor = 'var(--c-progress-warn)';
+                progressBarBgColor = '#F97316'; // Tailwind orange-500
             }
             if (percentage >= 100) {
                 progressBarColorClass = 'bg-red-500';
-                progressBarBgColor = 'var(--c-progress-danger)';
+                progressBarBgColor = '#EF4444'; // Tailwind red-500
             }
 
             const div = document.createElement('div');
@@ -537,12 +543,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const labels = Object.keys(expenseData);
         const data = Object.values(expenseData);
 
+        // Hardcoded vibrant color palette for the pie chart
         const pieColors = [
-            'var(--chart-color-1)', 'var(--chart-color-2)', 'var(--chart-color-3)',
-            'var(--chart-color-4)', 'var(--chart-color-5)', 'var(--chart-color-6)',
-            'var(--chart-color-7)', 'var(--chart-color-8)', 'var(--chart-color-9)',
-            'var(--chart-color-10)', 'var(--chart-color-11)', 'var(--chart-color-12)',
-            'var(--chart-color-13)', 'var(--chart-color-14)'
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+            '#E7E9ED', '#8AC926', '#1982C4', '#6A4C93', '#FFCA3A', '#6A994E',
+            '#F08A5D', '#B8B8F3'
         ];
 
         if (expensesPieChart) expensesPieChart.destroy();
@@ -553,7 +558,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     data: data,
                     backgroundColor: pieColors,
-                    borderColor: 'var(--bg-body)',
+                    borderColor: '#ffffff', // White border for contrast
                     borderWidth: 4,
                 }]
             },
@@ -566,12 +571,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         display: true,
                         position: 'bottom',
                         labels: {
-                            color: 'var(--c-text-main)'
+                            color: '#333333' // Dark text for legend labels
                         }
                     },
                     tooltip: {
-                        titleColor: 'var(--c-text-dark)',
-                        bodyColor: 'var(--c-text-dark)',
+                        titleColor: '#333333',
+                        bodyColor: '#333333',
                         backgroundColor: 'rgba(255, 255, 255, 0.9)'
                     }
                 }
@@ -601,8 +606,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             data: {
                 labels,
                 datasets: [
-                    { label: 'Income', data: incomeData, backgroundColor: 'var(--c-income)', barPercentage: 0.4, categoryPercentage: 0.6 },
-                    { label: 'Expense', data: expenseData, backgroundColor: 'var(--c-expense)', barPercentage: 0.4, categoryPercentage: 0.6 }
+                    // Hardcoded colors for bar chart
+                    { label: 'Income', data: incomeData, backgroundColor: '#4CAF50', barPercentage: 0.4, categoryPercentage: 0.6 }, // Green
+                    { label: 'Expense', data: expenseData, backgroundColor: '#F44336', barPercentage: 0.4, categoryPercentage: 0.6 }  // Red
                 ]
             },
             options: {
@@ -612,7 +618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     x: {
                         stacked: false,
                         ticks: {
-                            color: 'var(--c-text-main)'
+                            color: '#333333' // Dark text for x-axis ticks
                         },
                         grid: {
                             color: 'rgba(209, 213, 219, 0.5)'
@@ -622,7 +628,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         stacked: false,
                         beginAtZero: true,
                         ticks: {
-                            color: 'var(--c-text-main)'
+                            color: '#333333' // Dark text for y-axis ticks
                         },
                         grid: {
                             color: 'rgba(209, 213, 219, 0.5)'
@@ -632,12 +638,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 plugins: {
                     legend: {
                         labels: {
-                            color: 'var(--c-text-main)'
+                            color: '#333333' // Dark text for legend labels
                         }
                     },
                     tooltip: {
-                        titleColor: 'var(--c-text-dark)',
-                        bodyColor: 'var(--c-text-dark)',
+                        titleColor: '#333333',
+                        bodyColor: '#333333',
                         backgroundColor: 'rgba(255, 255, 255, 0.9)'
                     }
                 }
@@ -693,18 +699,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('trans-tbl-body').addEventListener('click', async (e) => {
         // Handle Edit button click
         if (e.target.closest('.trans-edit-btn')) {
-            const id = e.target.closest('.trans-edit-btn').dataset.id;
-            const transaction = state.transactions.find(t => t.id === id);
-            openTransMod('edit', transaction);
+            const btn = e.target.closest('.trans-edit-btn');
+            const id = btn.dataset.id;
+            console.log('Edit button clicked for transaction ID:', id); // Debug log
+            const transaction = state.transactions.find(t => String(t.id) === String(id)); // Ensure string comparison
+            if (transaction) {
+                console.log('Found transaction for editing:', transaction); // Debug log
+                openTransMod('edit', transaction);
+            } else {
+                console.error('Transaction not found for ID:', id, 'Current state.transactions:', state.transactions); // Debug log
+                alert('Transaction not found for editing.');
+            }
         }
         // Handle Delete button click
         if (e.target.closest('.trans-delete-btn')) {
-            const id = e.target.closest('.trans-delete-btn').dataset.id;
+            const btn = e.target.closest('.trans-delete-btn');
+            const id = btn.dataset.id;
+            console.log('Delete button clicked for transaction ID:', id); // Debug log
             openConfirmModal('Are you sure you want to delete this transaction?', async (confirmed) => {
                 if (confirmed) {
                     try {
                         const response = await apiFetch(`/api/transactions/${id}/`, { method: 'DELETE' });
                         if (response.ok) {
+                            console.log('Transaction deleted successfully:', id); // Debug log
                             fetchAndRenderData();
                         } else {
                             const errorData = await response.json();
@@ -1040,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 const errorData = await response.json();
                 if (errorData.username) userErr.textContent = errorData.username[0];
-                if (errorData.email) emErr.textContent = errorData.email[0];
+                if (errorData.email) emErr.textContent = errorData.reason || errorData.email[0]; // Use reason if available
                 profSaveStat.textContent = 'Failed to save changes: ' + (errorData.detail || '');
             }
         } catch (error) {
