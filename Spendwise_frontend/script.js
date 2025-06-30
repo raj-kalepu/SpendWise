@@ -1,12 +1,79 @@
 // Global state for data and UI
-let transactions = JSON.parse(localStorage.getItem('spendwise_transactions')) || [];
-let budgets = JSON.parse(localStorage.getItem('spendwise_budgets')) || [];
-let loans = JSON.parse(localStorage.getItem('spendwise_loans')) || [];
-// userProfile will be initialized after checking onboarding status
-let userProfile = null;
+let transactions = []; // Data will be fetched from (mock) backend
+let budgets = [];      // Data will be fetched from (mock) backend
+let loans = [];        // Data will be fetched from (mock) backend
+let userProfile = null; // User profile will be fetched or created via (mock) backend
 
 let currentPage = 'dashboard';
 let expenseChart = null; // To store the Chart.js instance
+
+// --- Mock Backend API Simulation ---
+// In a real application, these would be actual fetch calls to your deployed Django REST Framework backend.
+// This mock API uses localStorage to persist data, simulating a backend database.
+const mockApi = {
+    // Base URL for your API (replace with your actual backend URL when deployed)
+    // For example: const BASE_URL = 'https://your-django-app.com/api';
+    BASE_URL: 'https://spendwise-backend-87n6.onrender.com', // Not used in mock, but good to keep as a placeholder
+
+    // Simulate network delay
+    _delay: (ms = 300) => new Promise(resolve => setTimeout(resolve, ms)),
+
+    // Simulate fetching all data for a given type
+    async get(type) {
+        await this._delay();
+        const data = JSON.parse(localStorage.getItem(`spendwise_${type}`)) || [];
+        return { success: true, data: data };
+    },
+
+    // Simulate creating a new item
+    async post(type, item) {
+        await this._delay();
+        const data = JSON.parse(localStorage.getItem(`spendwise_${type}`)) || [];
+        item.id = '_' + Math.random().toString(36).substr(2, 9); // Generate unique ID
+        data.push(item);
+        localStorage.setItem(`spendwise_${type}`, JSON.stringify(data));
+        return { success: true, data: item };
+    },
+
+    // Simulate updating an item
+    async put(type, id, updatedItem) {
+        await this._delay();
+        let data = JSON.parse(localStorage.getItem(`spendwise_${type}`)) || [];
+        const index = data.findIndex(item => item.id === id);
+        if (index !== -1) {
+            data[index] = { ...data[index], ...updatedItem, id: id }; // Ensure ID remains
+            localStorage.setItem(`spendwise_${type}`, JSON.stringify(data));
+            return { success: true, data: data[index] };
+        }
+        return { success: false, message: `${type} not found` };
+    },
+
+    // Simulate deleting an item
+    async delete(type, id) {
+        await this._delay();
+        let data = JSON.parse(localStorage.getItem(`spendwise_${type}`)) || [];
+        const initialLength = data.length;
+        data = data.filter(item => item.id !== id);
+        localStorage.setItem(`spendwise_${type}`, JSON.stringify(data));
+        if (data.length < initialLength) {
+            return { success: true, message: `${type} deleted successfully` };
+        }
+        return { success: false, message: `${type} not found` };
+    },
+
+    // Special handling for user profile (it's a single object, not a collection)
+    async getUserProfile() {
+        await this._delay();
+        const profile = JSON.parse(localStorage.getItem('spendwise_user_profile')) || null;
+        return { success: true, data: profile };
+    },
+
+    async saveUserProfile(profile) {
+        await this._delay();
+        localStorage.setItem('spendwise_user_profile', JSON.stringify(profile));
+        return { success: true, data: profile };
+    }
+};
 
 // --- Date Formatting Utility Functions ---
 
@@ -41,29 +108,16 @@ function parseDateForStorage(dateString) {
 // --- General Utility Functions ---
 
 /**
- * Generates a unique ID for new items.
- * @returns {string} A unique ID.
- */
-function generateUniqueId() {
-    return '_' + Math.random().toString(36).substr(2, 9);
-}
-
-/**
- * Saves all data to localStorage.
- */
-function saveData() {
-    localStorage.setItem('spendwise_transactions', JSON.stringify(transactions));
-    localStorage.setItem('spendwise_budgets', JSON.stringify(budgets));
-    localStorage.setItem('spendwise_loans', JSON.stringify(loans));
-    localStorage.setItem('spendwise_user_profile', JSON.stringify(userProfile));
-}
-
-/**
  * Formats a number as currency based on the selected currency.
  * @param {number} amount - The amount to format.
  * @returns {string} The formatted currency string.
  */
 function formatCurrency(amount) {
+    // Ensure userProfile is loaded before attempting to access its properties
+    if (!userProfile || !userProfile.currency) {
+        // Fallback if userProfile is not yet loaded or currency is missing
+        return amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+    }
     const currencyOptions = {
         'USD': { symbol: '$', locale: 'en-US' },
         'EUR': { symbol: '€', locale: 'de-DE' },
@@ -110,11 +164,17 @@ function closeModal(modalId) {
 /**
  * Initializes user profile based on localStorage or shows onboarding.
  */
-function initializeUserProfile() {
-    userProfile = JSON.parse(localStorage.getItem('spendwise_user_profile'));
-    const onboardingCompletedFlag = localStorage.getItem('spendwise_onboarding_completed');
+async function initializeUserProfile() {
+    // Try to fetch user profile from mock API (simulating backend)
+    const profileResponse = await mockApi.getUserProfile();
 
-    if (!userProfile) { // No existing profile
+    if (profileResponse.success && profileResponse.data) {
+        userProfile = profileResponse.data;
+        renderCurrentPage(); // Render app content with existing profile
+    } else {
+        // No existing profile on "backend", check onboarding flag
+        const onboardingCompletedFlag = localStorage.getItem('spendwise_onboarding_completed');
+
         if (onboardingCompletedFlag === 'true') { // User previously skipped or used dummy
             userProfile = {
                 username: 'John Doe',
@@ -122,7 +182,8 @@ function initializeUserProfile() {
                 mobile: '+1234567890',
                 currency: 'INR'
             };
-            saveData(); // Save this dummy profile to localStorage
+            // Save this dummy profile to mock backend (localStorage)
+            await mockApi.saveUserProfile(userProfile);
             renderCurrentPage(); // Render app content
         } else { // First time user, show onboarding modal
             openModal('onboardingModal');
@@ -130,8 +191,6 @@ function initializeUserProfile() {
             document.getElementById('onboardingForm').onsubmit = handleOnboardingSubmit;
             document.getElementById('skipOnboardingBtn').onclick = skipOnboarding;
         }
-    } else { // Profile already exists, just render the app
-        renderCurrentPage();
     }
 }
 
@@ -139,7 +198,7 @@ function initializeUserProfile() {
  * Handles the submission of the onboarding form.
  * @param {Event} event - The form submission event.
  */
-function handleOnboardingSubmit(event) {
+async function handleOnboardingSubmit(event) {
     event.preventDefault();
     const name = document.getElementById('onboardingName').value.trim();
     const email = document.getElementById('onboardingEmail').value.trim();
@@ -150,26 +209,95 @@ function handleOnboardingSubmit(event) {
         mobile: '+1234567890', // Default mobile
         currency: 'INR' // Default currency
     };
-    localStorage.setItem('spendwise_onboarding_completed', 'true'); // Mark onboarding as completed
-    saveData();
-    closeModal('onboardingModal');
-    renderCurrentPage(); // Render app content
+
+    try {
+        await mockApi.saveUserProfile(userProfile); // Save to mock backend
+        localStorage.setItem('spendwise_onboarding_completed', 'true'); // Mark onboarding as completed
+        closeModal('onboardingModal');
+        renderCurrentPage(); // Render app content
+    } catch (error) {
+        console.error('Error saving user profile:', error);
+        showMessageBox('Error', 'Failed to save profile. Please try again.');
+    }
 }
 
 /**
  * Skips the onboarding process and uses dummy data.
  */
-function skipOnboarding() {
+async function skipOnboarding() {
     userProfile = {
         username: 'John Doe',
         email: 'john.doe@example.com',
         mobile: '+1234567890',
         currency: 'INR'
     };
-    localStorage.setItem('spendwise_onboarding_completed', 'true'); // Mark onboarding as completed
-    saveData();
-    closeModal('onboardingModal');
-    renderCurrentPage(); // Render app content
+
+    try {
+        await mockApi.saveUserProfile(userProfile); // Save to mock backend
+        localStorage.setItem('spendwise_onboarding_completed', 'true'); // Mark onboarding as completed
+        closeModal('onboardingModal');
+        renderCurrentPage(); // Render app content
+    } catch (error) {
+        console.error('Error skipping onboarding:', error);
+        showMessageBox('Error', 'Failed to skip onboarding. Please try again.');
+    }
+}
+
+
+// --- Data Fetching Functions (using mockApi) ---
+
+/**
+ * Fetches all transactions from the mock backend.
+ */
+async function fetchTransactions() {
+    try {
+        const response = await mockApi.get('transactions');
+        if (response.success) {
+            transactions = response.data;
+        } else {
+            console.error('Failed to fetch transactions:', response.message);
+            showMessageBox('Error', 'Failed to load transactions.');
+        }
+    } catch (error) {
+        console.error('Network error fetching transactions:', error);
+        showMessageBox('Error', 'Network error. Could not load transactions.');
+    }
+}
+
+/**
+ * Fetches all budgets from the mock backend.
+ */
+async function fetchBudgets() {
+    try {
+        const response = await mockApi.get('budgets');
+        if (response.success) {
+            budgets = response.data;
+        } else {
+            console.error('Failed to fetch budgets:', response.message);
+            showMessageBox('Error', 'Failed to load budgets.');
+        }
+    } catch (error) {
+        console.error('Network error fetching budgets:', error);
+        showMessageBox('Error', 'Network error. Could not load budgets.');
+    }
+}
+
+/**
+ * Fetches all loans from the mock backend.
+ */
+async function fetchLoans() {
+    try {
+        const response = await mockApi.get('loans');
+        if (response.success) {
+            loans = response.data;
+        } else {
+            console.error('Failed to fetch loans:', response.message);
+            showMessageBox('Error', 'Failed to load loans.');
+        }
+    } catch (error) {
+        console.error('Network error fetching loans:', error);
+        showMessageBox('Error', 'Network error. Could not load loans.');
+    }
 }
 
 
@@ -178,7 +306,12 @@ function skipOnboarding() {
 /**
  * Renders the Dashboard page content.
  */
-function renderDashboard() {
+async function renderDashboard() {
+    // Fetch latest data before rendering
+    await fetchTransactions();
+    await fetchBudgets();
+    await fetchLoans();
+
     const pageContent = document.getElementById('page-content');
     pageContent.innerHTML = `
         <h1 class="text-3xl font-bold mb-8 text-gray-900">Dashboard</h1>
@@ -392,7 +525,9 @@ function renderRecentTransactions() {
 /**
  * Renders the Transactions page content.
  */
-function renderTransactions() {
+async function renderTransactions() {
+    await fetchTransactions(); // Fetch latest transactions
+
     const pageContent = document.getElementById('page-content');
     pageContent.innerHTML = `
         <h1 class="text-3xl font-bold mb-8 text-gray-900">Transactions</h1>
@@ -564,7 +699,7 @@ function showTransactionModal(id = null) {
  * Handles form submission for transactions (add/edit).
  * @param {Event} event - The form submission event.
  */
-function handleTransactionSubmit(event) {
+async function handleTransactionSubmit(event) {
     event.preventDefault();
     const id = document.getElementById('transactionId').value;
     const amount = parseFloat(document.getElementById('transactionAmount').value);
@@ -587,54 +722,71 @@ function handleTransactionSubmit(event) {
         return;
     }
 
-    if (id) {
-        // Edit existing transaction
-        const index = transactions.findIndex(t => t.id === id);
-        if (index !== -1) {
-            transactions[index] = { id, amount, category, type, date, description };
-            showMessageBox('Success', 'Transaction updated successfully!');
+    try {
+        if (id) {
+            // Edit existing transaction
+            const response = await mockApi.put('transactions', id, { amount, category, type, date, description });
+            if (response.success) {
+                showMessageBox('Success', 'Transaction updated successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } else {
+            // Add new transaction
+            const newTransaction = { amount, category, type, date, description };
+            const response = await mockApi.post('transactions', newTransaction);
+            if (response.success) {
+                showMessageBox('Success', 'Transaction added successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
         }
-    } else {
-        // Add new transaction
-        const newTransaction = {
-            id: generateUniqueId(),
-            amount,
-            category,
-            type,
-            date,
-            description
-        };
-        transactions.push(newTransaction);
-        showMessageBox('Success', 'Transaction added successfully!');
+    } catch (error) {
+        console.error('API error:', error);
+        showMessageBox('Error', 'An error occurred while saving the transaction.');
     }
-    saveData();
+
     closeModal('transactionModal');
-    renderTransactionsTable(); // Re-render table after change
-    updateDashboardSummary(); // Update dashboard summary if transactions change
-    renderExpenseChart(); // Update chart if transactions change
-    renderBudgetAlerts(); // Update alerts if transactions change
+    // Re-fetch and re-render all relevant data after a change
+    await fetchTransactions();
+    renderTransactionsTable();
+    updateDashboardSummary();
+    renderExpenseChart();
+    renderBudgetAlerts();
 }
 
 /**
  * Deletes a transaction.
  * @param {string} id - The ID of the transaction to delete.
  */
-function deleteTransaction(id) {
+async function deleteTransaction(id) {
     if (confirm('Are you sure you want to delete this transaction?')) {
-        transactions = transactions.filter(t => t.id !== id);
-        saveData();
-        showMessageBox('Success', 'Transaction deleted successfully!');
-        renderTransactionsTable(); // Re-render table after deletion
-        updateDashboardSummary(); // Update dashboard summary
-        renderExpenseChart(); // Update chart
-        renderBudgetAlerts(); // Update alerts
+        try {
+            const response = await mockApi.delete('transactions', id);
+            if (response.success) {
+                showMessageBox('Success', 'Transaction deleted successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } catch (error) {
+            console.error('API error:', error);
+            showMessageBox('Error', 'An error occurred while deleting the transaction.');
+        }
+        // Re-fetch and re-render all relevant data after a change
+        await fetchTransactions();
+        renderTransactionsTable();
+        updateDashboardSummary();
+        renderExpenseChart();
+        renderBudgetAlerts();
     }
 }
 
 /**
  * Renders the Budgets page content.
  */
-function renderBudgets() {
+async function renderBudgets() {
+    await fetchBudgets(); // Fetch latest budgets
+
     const pageContent = document.getElementById('page-content');
     pageContent.innerHTML = `
         <h1 class="text-3xl font-bold mb-8 text-gray-900">Budgets</h1>
@@ -750,7 +902,7 @@ function showBudgetModal(id = null) {
  * Handles form submission for budgets (add/edit).
  * @param {Event} event - The form submission event.
  */
-function handleBudgetSubmit(event) {
+async function handleBudgetSubmit(event) {
     event.preventDefault();
     const id = document.getElementById('budgetId').value;
     const category = document.getElementById('budgetCategory').value;
@@ -765,52 +917,78 @@ function handleBudgetSubmit(event) {
         return;
     }
 
-    if (id) {
-        // Edit existing budget
-        const index = budgets.findIndex(b => b.id === id);
-        if (index !== -1) {
-            budgets[index] = { id, category, limit };
-            showMessageBox('Success', 'Budget updated successfully!');
+    try {
+        if (id) {
+            // Edit existing budget
+            const response = await mockApi.put('budgets', id, { category, limit });
+            if (response.success) {
+                showMessageBox('Success', 'Budget updated successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } else {
+            // Add new budget
+            // Check if budget for this category already exists (mock backend handles unique ID, but we check category here)
+            if (budgets.some(b => b.category === category)) {
+                showMessageBox('Error', `A budget for '${category}' already exists. Please edit the existing one.`);
+                return;
+            }
+            const newBudget = { category, limit };
+            const response = await mockApi.post('budgets', newBudget);
+            if (response.success) {
+                showMessageBox('Success', 'Budget created successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
         }
-    } else {
-        // Add new budget
-        // Check if budget for this category already exists
-        if (budgets.some(b => b.category === category)) {
-            showMessageBox('Error', `A budget for '${category}' already exists. Please edit the existing one.`);
-            return;
-        }
-        const newBudget = {
-            id: generateUniqueId(),
-            category,
-            limit
-        };
-        budgets.push(newBudget);
-        showMessageBox('Success', 'Budget created successfully!');
+    } catch (error) {
+        console.error('API error:', error);
+        showMessageBox('Error', 'An error occurred while saving the budget.');
     }
-    saveData();
+
     closeModal('budgetModal');
-    renderBudgetsTable(); // Re-render table
-    renderBudgetAlerts(); // Update dashboard alerts
+    // Re-fetch and re-render all relevant data after a change
+    await fetchBudgets();
+    renderBudgetsTable();
+    renderBudgetAlerts();
+    // Also update dashboard as budget changes affect alerts and potentially summary
+    updateDashboardSummary();
+    renderExpenseChart();
 }
 
 /**
  * Deletes a budget.
  * @param {string} id - The ID of the budget to delete.
  */
-function deleteBudget(id) {
+async function deleteBudget(id) {
     if (confirm('Are you sure you want to delete this budget?')) {
-        budgets = budgets.filter(b => b.id !== id);
-        saveData();
-        showMessageBox('Success', 'Budget deleted successfully!');
-        renderBudgetsTable(); // Re-render table
-        renderBudgetAlerts(); // Update dashboard alerts
+        try {
+            const response = await mockApi.delete('budgets', id);
+            if (response.success) {
+                showMessageBox('Success', 'Budget deleted successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } catch (error) {
+            console.error('API error:', error);
+            showMessageBox('Error', 'An error occurred while deleting the budget.');
+        }
+        // Re-fetch and re-render all relevant data after a change
+        await fetchBudgets();
+        renderBudgetsTable();
+        renderBudgetAlerts();
+        // Also update dashboard as budget changes affect alerts and potentially summary
+        updateDashboardSummary();
+        renderExpenseChart();
     }
 }
 
 /**
  * Renders the Loans page content.
  */
-function renderLoans() {
+async function renderLoans() {
+    await fetchLoans(); // Fetch latest loans
+
     const pageContent = document.getElementById('page-content');
     pageContent.innerHTML = `
         <h1 class="text-3xl font-bold mb-8 text-gray-900">Loans</h1>
@@ -933,7 +1111,7 @@ function showLoanModal(id = null) {
  * Handles form submission for loans (add/edit).
  * @param {Event} event - The form submission event.
  */
-function handleLoanSubmit(event) {
+async function handleLoanSubmit(event) {
     event.preventDefault();
     const id = document.getElementById('loanId').value;
     const amount = parseFloat(document.getElementById('loanAmount').value);
@@ -952,42 +1130,56 @@ function handleLoanSubmit(event) {
         return;
     }
 
-    if (id) {
-        // Edit existing loan
-        const index = loans.findIndex(l => l.id === id);
-        if (index !== -1) {
-            loans[index] = { ...loans[index], amount, interestRate, repaymentDate, lender, description };
-            showMessageBox('Success', 'Loan updated successfully!');
+    try {
+        if (id) {
+            // Edit existing loan
+            const response = await mockApi.put('loans', id, { amount, interestRate, repaymentDate, lender, description });
+            if (response.success) {
+                showMessageBox('Success', 'Loan updated successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } else {
+            // Add new loan
+            const newLoan = { amount, interestRate, repaymentDate, lender, description, status: 'Unpaid' };
+            const response = await mockApi.post('loans', newLoan);
+            if (response.success) {
+                showMessageBox('Success', 'Loan added successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
         }
-    } else {
-        // Add new loan
-        const newLoan = {
-            id: generateUniqueId(),
-            amount,
-            interestRate,
-            repaymentDate,
-            lender,
-            description,
-            status: 'Unpaid' // Default status
-        };
-        loans.push(newLoan);
-        showMessageBox('Success', 'Loan added successfully!');
+    } catch (error) {
+        console.error('API error:', error);
+        showMessageBox('Error', 'An error occurred while saving the loan.');
     }
-    saveData();
+
     closeModal('loanModal');
-    renderLoansTable(); // Re-render table
+    // Re-fetch and re-render all relevant data after a change
+    await fetchLoans();
+    renderLoansTable();
 }
 
 /**
  * Toggles the paid/unpaid status of a loan.
  * @param {string} id - The ID of the loan to toggle.
  */
-function toggleLoanStatus(id) {
+async function toggleLoanStatus(id) {
     const loan = loans.find(l => l.id === id);
     if (loan) {
-        loan.status = loan.status === 'Paid' ? 'Unpaid' : 'Paid';
-        saveData();
-        showMessageBox('Status Updated', `Loan from ${loan.lender} is now ${loan.status}.`);
+        const newStatus = loan.status === 'Paid' ? 'Unpaid' : 'Paid';
+        try {
+            const response = await mockApi.put('loans', id, { status: newStatus });
+            if (response.success) {
+                showMessageBox('Status Updated', `Loan from ${loan.lender} is now ${newStatus}.`);
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } catch (error) {
+            console.error('API error:', error);
+            showMessageBox('Error', 'An error occurred while updating loan status.');
+        }
+        await fetchLoans(); // Re-fetch to update local state
         renderLoansTable();
     }
 }
@@ -996,11 +1188,20 @@ function toggleLoanStatus(id) {
  * Deletes a loan.
  * @param {string} id - The ID of the loan to delete.
  */
-function deleteLoan(id) {
+async function deleteLoan(id) {
     if (confirm('Are you sure you want to delete this loan?')) {
-        loans = loans.filter(l => l.id !== id);
-        saveData();
-        showMessageBox('Success', 'Loan deleted successfully!');
+        try {
+            const response = await mockApi.delete('loans', id);
+            if (response.success) {
+                showMessageBox('Success', 'Loan deleted successfully!');
+            } else {
+                showMessageBox('Error', response.message);
+            }
+        } catch (error) {
+            console.error('API error:', error);
+            showMessageBox('Error', 'An error occurred while deleting the loan.');
+        }
+        await fetchLoans(); // Re-fetch to update local state
         renderLoansTable();
     }
 }
@@ -1008,7 +1209,18 @@ function deleteLoan(id) {
 /**
  * Renders the Profile page content.
  */
-function renderProfile() {
+async function renderProfile() {
+    // Fetch the latest user profile
+    const profileResponse = await mockApi.getUserProfile();
+    if (profileResponse.success && profileResponse.data) {
+        userProfile = profileResponse.data;
+    } else {
+        console.error('Failed to fetch user profile for rendering:', profileResponse.message);
+        showMessageBox('Error', 'Failed to load user profile.');
+        // Fallback to dummy if fetch fails, to prevent errors
+        userProfile = userProfile || { username: 'John Doe', email: 'john.doe@example.com', mobile: '+1234567890', currency: 'INR' };
+    }
+
     const pageContent = document.getElementById('page-content');
     pageContent.innerHTML = `
         <h1 class="text-3xl font-bold mb-8 text-gray-900">User Profile</h1>
@@ -1055,28 +1267,35 @@ function renderProfile() {
  * Handles form submission for user profile.
  * @param {Event} event - The form submission event.
  */
-function handleProfileSubmit(event) {
+async function handleProfileSubmit(event) {
     event.preventDefault();
-    userProfile.username = document.getElementById('profileUsername').value;
-    userProfile.email = document.getElementById('profileEmail').value;
-    userProfile.mobile = document.getElementById('profileMobile').value;
-    const newCurrency = document.getElementById('profileCurrency').value;
+    const newProfileData = {
+        username: document.getElementById('profileUsername').value,
+        email: document.getElementById('profileEmail').value,
+        mobile: document.getElementById('profileMobile').value,
+        currency: document.getElementById('profileCurrency').value
+    };
 
-    if (newCurrency !== userProfile.currency) {
-        userProfile.currency = newCurrency;
-        showMessageBox('Success', 'Profile updated successfully! Currency change applied.');
-        // Re-render current page to reflect currency change
-        renderCurrentPage();
-    } else {
-        showMessageBox('Success', 'Profile updated successfully!');
+    try {
+        const response = await mockApi.saveUserProfile(newProfileData); // Update profile in mock backend
+        if (response.success) {
+            userProfile = response.data; // Update local state with latest profile
+            showMessageBox('Success', 'Profile updated successfully! Currency change applied.');
+            // Re-render current page to reflect currency change (if applicable)
+            renderCurrentPage();
+        } else {
+            showMessageBox('Error', response.message);
+        }
+    } catch (error) {
+        console.error('API error:', error);
+        showMessageBox('Error', 'An error occurred while saving the profile.');
     }
-    saveData();
 }
 
 /**
  * Renders the current page based on the `currentPage` state.
  */
-function renderCurrentPage() {
+async function renderCurrentPage() {
     // Remove active class from all sidebar links
     document.querySelectorAll('.sidebar-link').forEach(link => {
         link.classList.remove('active');
@@ -1088,24 +1307,25 @@ function renderCurrentPage() {
         activeLink.classList.add('active');
     }
 
+    // Call the appropriate render function, which will now fetch data
     switch (currentPage) {
         case 'dashboard':
-            renderDashboard();
+            await renderDashboard();
             break;
         case 'transactions':
-            renderTransactions();
+            await renderTransactions();
             break;
         case 'budgets':
-            renderBudgets();
+            await renderBudgets();
             break;
         case 'loans':
-            renderLoans();
+            await renderLoans();
             break;
         case 'profile':
-            renderProfile();
+            await renderProfile();
             break;
         default:
-            renderDashboard(); // Fallback
+            await renderDashboard(); // Fallback
     }
 }
 
@@ -1146,7 +1366,7 @@ window.onpopstate = function(event) {
 /**
  * Initializes the application when the DOM is fully loaded.
  */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Set up sidebar link event listeners
     document.querySelectorAll('.sidebar-link').forEach(link => {
         link.addEventListener('click', handleSidebarClick);
@@ -1194,29 +1414,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize user profile and potentially show onboarding
-    initializeUserProfile();
-});
+    await initializeUserProfile();
 
-// Initial data for demonstration if localStorage is empty
-// Dates are now in YYYY-MM-DD format for internal consistency
-if (transactions.length === 0 && budgets.length === 0 && loans.length === 0) {
-    transactions = [
-        { id: generateUniqueId(), amount: 1200, category: 'Salary', type: 'income', date: '2025-06-01', description: 'Monthly Salary' },
-        { id: generateUniqueId(), amount: 50.75, category: 'Food', type: 'expense', date: '2025-06-05', description: 'Groceries' },
-        { id: generateUniqueId(), amount: 30, category: 'Transport', type: 'expense', date: '2025-06-07', description: 'Bus fare' },
-        { id: generateUniqueId(), amount: 150, category: 'Shopping', type: 'expense', date: '2025-06-10', description: 'New clothes' },
-        { id: generateUniqueId(), amount: 800, category: 'Rent', type: 'expense', date: '2025-06-01', description: 'Monthly Rent' },
-        { id: generateUniqueId(), amount: 75, category: 'Entertainment', type: 'expense', date: '2025-06-15', description: 'Movie tickets' },
-        { id: generateUniqueId(), amount: 200, category: 'Salary', type: 'income', date: '2025-06-15', description: 'Freelance work' }
-    ];
-    budgets = [
-        { id: generateUniqueId(), category: 'Food', limit: 200 },
-        { id: generateUniqueId(), category: 'Transport', limit: 100 },
-        { id: generateUniqueId(), category: 'Entertainment', limit: 150 }
-    ];
-    loans = [
-        { id: generateUniqueId(), amount: 500, interestRate: 10, repaymentDate: '2025-09-30', lender: 'Friend A', description: 'Borrowed for emergency', status: 'Unpaid' },
-        { id: generateUniqueId(), amount: 2000, interestRate: 5, repaymentDate: '2026-01-15', lender: 'Bank B', description: 'Car loan downpayment', status: 'Unpaid' }
-    ];
-    saveData(); // Save initial data to localStorage
-}
+    // Initial data for demonstration if mock backend (localStorage) is empty
+    // This block ensures there's some data to display on first run if no user profile was found
+    const allData = await Promise.all([mockApi.get('transactions'), mockApi.get('budgets'), mockApi.get('loans')]);
+    if (allData[0].data.length === 0 && allData[1].data.length === 0 && allData[2].data.length === 0) {
+        const initialTransactions = [
+            { id: generateUniqueId(), amount: 1200, category: 'Salary', type: 'income', date: '2025-06-01', description: 'Monthly Salary' },
+            { id: generateUniqueId(), amount: 50.75, category: 'Food', type: 'expense', date: '2025-06-05', description: 'Groceries' },
+            { id: generateUniqueId(), amount: 30, category: 'Transport', type: 'expense', date: '2025-06-07', description: 'Bus fare' },
+            { id: generateUniqueId(), amount: 150, category: 'Shopping', type: 'expense', date: '2025-06-10', description: 'New clothes' },
+            { id: generateUniqueId(), amount: 800, category: 'Rent', type: 'expense', date: '2025-06-01', description: 'Monthly Rent' },
+            { id: generateUniqueId(), amount: 75, category: 'Entertainment', type: 'expense', date: '2025-06-15', description: 'Movie tickets' },
+            { id: generateUniqueId(), amount: 200, category: 'Salary', type: 'income', date: '2025-06-15', description: 'Freelance work' }
+        ];
+        const initialBudgets = [
+            { id: generateUniqueId(), category: 'Food', limit: 200 },
+            { id: generateUniqueId(), category: 'Transport', limit: 100 },
+            { id: generateUniqueId(), category: 'Entertainment', limit: 150 }
+        ];
+        const initialLoans = [
+            { id: generateUniqueId(), amount: 500, interestRate: 10, repaymentDate: '2025-09-30', lender: 'Friend A', description: 'Borrowed for emergency', status: 'Unpaid' },
+            { id: generateUniqueId(), amount: 2000, interestRate: 5, repaymentDate: '2026-01-15', lender: 'Bank B', description: 'Car loan downpayment', status: 'Unpaid' }
+        ];
+
+        // Use Promise.all to ensure all initial data is "posted" before rendering
+        await Promise.all([
+            ...initialTransactions.map(t => mockApi.post('transactions', t)),
+            ...initialBudgets.map(b => mockApi.post('budgets', b)),
+            ...initialLoans.map(l => mockApi.post('loans', l))
+        ]);
+
+        // Re-fetch data into global variables after initial population
+        await fetchTransactions();
+        await fetchBudgets();
+        await fetchLoans();
+
+        renderCurrentPage(); // Re-render after initial data is set
+    }
+});
