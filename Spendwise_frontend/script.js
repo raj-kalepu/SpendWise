@@ -90,6 +90,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filtEndDate = document.getElementById('filt-end-date');
     const filtKeyword = document.getElementById('filt-keyword');
 
+    // References to specific date inputs for Flatpickr initialization
+    const transDateInput = document.getElementById('trans-date');
+    const loanDueInput = document.getElementById('loan-due');
+    const loanDetDueInput = document.getElementById('loan-det-due');
+
 
     // --- HELPER FUNCTIONS FOR API CALLS ---
     // Simplified apiFetch - no token handling needed for unauthenticated app
@@ -114,12 +119,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     errorData = await response.text(); // Get raw text if JSON parsing fails
                 }
                 console.error(`API Fetch Error: ${response.status} for ${url}`, errorData);
-                throw new Error(`API Error: ${response.status} - ${typeof errorData === 'object' ? (errorData.detail || JSON.stringify(errorData)) : errorData}`);
+                // Return structured error for better alert messages
+                return { ok: false, status: response.status, data: errorData };
             }
-            return response;
+            return { ok: true, status: response.status, data: await response.json() };
         } catch (error) {
             console.error(`Network or Fetch Error for ${url}:`, error);
-            throw error; // Re-throw to be caught by fetchDataFromBackend's outer catch
+            // Return structured error for better alert messages
+            return { ok: false, status: 0, data: error.message }; // status 0 for network errors
         }
     };
 
@@ -129,14 +136,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             console.log('Attempting to fetch transactions...');
             const transResponse = await apiFetch('/api/transactions/');
-            console.log('Transactions response received. Status:', transResponse.status, 'OK:', transResponse.ok);
 
             if (transResponse.ok) {
-                const paginatedData = await transResponse.json(); // Renamed to clearly indicate it's paginated
+                const paginatedData = transResponse.data;
                 console.log('Transactions JSON data received:', paginatedData); 
-
-                // --- MODIFICATION HERE: Access paginatedData.results ---
-                const data = paginatedData.results; // Extract the actual array from 'results' key
+                const data = paginatedData.results;
 
                 if (Array.isArray(data)) { 
                     state.transactions = data;
@@ -144,22 +148,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.log('Transactions fetched and sorted. Count:', state.transactions.length);
                 } else {
                     console.error("Transactions API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
-                    state.transactions = []; // Ensure it's an empty array to prevent .sort() error
+                    state.transactions = [];
                 }
             } else {
-                // Error handled by apiFetch, but ensure state is clean
+                console.error("Failed to fetch transactions:", transResponse.data);
                 state.transactions = [];
             }
 
             console.log('Attempting to fetch budgets...');
             const budgetResponse = await apiFetch('/api/budgets/');
-            console.log('Budgets response received. Status:', budgetResponse.status, 'OK:', budgetResponse.ok);
             if (budgetResponse.ok) {
-                const paginatedData = await budgetResponse.json(); // Renamed
+                const paginatedData = budgetResponse.data;
                 console.log('Budgets JSON data received:', paginatedData);
-                
-                // --- MODIFICATION HERE: Access paginatedData.results ---
-                const data = paginatedData.results; // Extract the actual array from 'results' key
+                const data = paginatedData.results;
 
                 if (Array.isArray(data)) {
                     state.budgets = data;
@@ -169,18 +170,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     state.budgets = [];
                 }
             } else {
+                console.error("Failed to fetch budgets:", budgetResponse.data);
                 state.budgets = [];
             }
 
             console.log('Attempting to fetch loans...');
             const loanResponse = await apiFetch('/api/loans/');
-            console.log('Loans response received. Status:', loanResponse.status, 'OK:', loanResponse.ok);
             if (loanResponse.ok) {
-                const paginatedData = await loanResponse.json(); // Renamed
+                const paginatedData = loanResponse.data;
                 console.log('Loans JSON data received:', paginatedData);
-                
-                // --- MODIFICATION HERE: Access paginatedData.results ---
-                const data = paginatedData.results; // Extract the actual array from 'results' key
+                const data = paginatedData.results;
 
                 if (Array.isArray(data)) {
                     state.loans = data;
@@ -190,6 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     state.loans = [];
                 }
             } else {
+                console.error("Failed to fetch loans:", loanResponse.data);
                 state.loans = [];
             }
 
@@ -220,13 +220,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         return dateString;
     };
 
-    // Returns today's date in DD-MM-YYYY format for display
-    const today = () => {
+    // Returns today's date in YYYY-MM-DD format for input default
+    const todayYYYYMMDD = () => {
         const d = new Date();
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so add 1
+        const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        return `${day}-${month}-${year}`;
+        return `${year}-${month}-${day}`;
     };
 
     let expensesPieChart, trendsBarChart; // Chart.js instances
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (mode === 'add') {
             modTitle.textContent = 'Add Transaction';
-            document.getElementById('trans-date').value = today();
+            document.getElementById('trans-date').value = todayYYYYMMDD(); // Set default to today's date
         } else { // Edit mode
             modTitle.textContent = 'Edit Transaction';
             document.getElementById('trans-id').value = transaction.id;
@@ -273,15 +273,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('trans-amt').value = transaction.amount;
             document.getElementById('trans-date').value = transaction.date;
         }
-        // --- MODIFICATION HERE ---
-        transMod.classList.remove('hidden'); // Ensure hidden is removed
+        transMod.classList.remove('hidden');
         transMod.classList.add('active');
     };
 
     const closeTransMod = () => {
-        // --- MODIFICATION HERE ---
         transMod.classList.remove('active');
-        transMod.classList.add('hidden'); // Add hidden back when closing
+        transMod.classList.add('hidden');
     };
 
     transMod.addEventListener('click', (e) => {
@@ -398,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const keyword = filtKeyword.value.toLowerCase();
 
         const filtered = state.transactions.filter(t => {
-            const tDate = new Date(t.date);
+            const tDate = new Date(t.date + 'T00:00:00'); // Ensure date comparison is consistent
             const start = startDate ? new Date(startDate + 'T00:00:00') : null;
             const end = endDate ? new Date(endDate + 'T23:59:59') : null;
 
@@ -664,30 +662,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             date: document.getElementById('trans-date').value,
         };
 
-        try {
-            let response;
-            if (id) {
-                response = await apiFetch(`/api/transactions/${id}/`, {
-                    method: 'PUT',
-                    body: JSON.stringify(newTransactionData)
-                });
-            } else {
-                response = await apiFetch('/api/transactions/', {
-                    method: 'POST',
-                    body: JSON.stringify(newTransactionData)
-                });
-            }
-            if (response.ok) {
-                closeTransMod();
-                fetchAndRenderData();
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to save transaction:', errorData);
-                alert('Failed to save transaction: ' + JSON.stringify(errorData));
-            }
-        } catch (error) {
-            console.error('Error saving transaction:', error);
-            alert('An error occurred while saving the transaction.');
+        const response = await apiFetch(id ? `/api/transactions/${id}/` : '/api/transactions/', {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(newTransactionData)
+        });
+
+        if (response.ok) {
+            closeTransMod();
+            fetchAndRenderData();
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error('Failed to save transaction:', errorMessage);
+            alert(`Failed to save transaction (Status: ${response.status}): ${errorMessage}`);
         }
     });
 
@@ -702,13 +688,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btn = e.target.closest('.trans-edit-btn');
             const id = btn.dataset.id;
             console.log('Edit button clicked for transaction ID:', id); // Debug log
-            const transaction = state.transactions.find(t => String(t.id) === String(id)); // Ensure string comparison
+            // Ensure `id` is compared as a string, as dataset values are strings
+            const transaction = state.transactions.find(t => String(t.id) === String(id));
             if (transaction) {
                 console.log('Found transaction for editing:', transaction); // Debug log
                 openTransMod('edit', transaction);
             } else {
                 console.error('Transaction not found for ID:', id, 'Current state.transactions:', state.transactions); // Debug log
-                alert('Transaction not found for editing.');
+                alert('Transaction not found for editing. Check console for details.');
             }
         }
         // Handle Delete button click
@@ -718,19 +705,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Delete button clicked for transaction ID:', id); // Debug log
             openConfirmModal('Are you sure you want to delete this transaction?', async (confirmed) => {
                 if (confirmed) {
-                    try {
-                        const response = await apiFetch(`/api/transactions/${id}/`, { method: 'DELETE' });
-                        if (response.ok) {
-                            console.log('Transaction deleted successfully:', id); // Debug log
-                            fetchAndRenderData();
-                        } else {
-                            const errorData = await response.json();
-                            console.error('Failed to delete transaction:', errorData);
-                            alert('Failed to delete transaction: ' + JSON.stringify(errorData));
-                        }
-                    } catch (error) {
-                        console.error('Error deleting transaction:', error);
-                        alert('An error occurred while deleting the transaction.');
+                    const response = await apiFetch(`/api/transactions/${id}/`, { method: 'DELETE' });
+                    if (response.ok) {
+                        console.log('Transaction deleted successfully:', id); // Debug log
+                        fetchAndRenderData();
+                    } else {
+                        const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+                        console.error('Failed to delete transaction:', errorMessage);
+                        alert(`Failed to delete transaction (Status: ${response.status}): ${errorMessage}`);
                     }
                 }
             });
@@ -749,22 +731,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const category = document.getElementById('bud-cat').value;
         const amount = parseFloat(document.getElementById('bud-amt').value);
 
-        try {
-            const response = await apiFetch('/api/budgets/', {
-                method: 'POST',
-                body: JSON.stringify({ category, amount })
-            });
-            if (response.ok) {
-                document.getElementById('bud-form').reset();
-                fetchAndRenderData();
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to save budget:', errorData);
-                alert('Failed to save budget: ' + JSON.stringify(errorData));
-            }
-        } catch (error) {
-            console.error('Error saving budget:', error);
-            alert('An error occurred while saving the budget.');
+        const response = await apiFetch('/api/budgets/', {
+            method: 'POST',
+            body: JSON.stringify({ category, amount })
+        });
+        if (response.ok) {
+            document.getElementById('bud-form').reset();
+            fetchAndRenderData();
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error('Failed to save budget:', errorMessage);
+            alert(`Failed to save budget (Status: ${response.status}): ${errorMessage}`);
         }
     });
 
@@ -777,22 +754,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             due_date: document.getElementById('loan-due').value,
             paid: false,
         };
-        try {
-            const response = await apiFetch('/api/loans/', {
-                method: 'POST',
-                body: JSON.stringify(loanData)
-            });
-            if (response.ok) {
-                document.getElementById('loan-form').reset();
-                fetchAndRenderData();
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to add loan:', errorData);
-                alert('Failed to add loan: ' + JSON.stringify(errorData));
-            }
-        } catch (error) {
-            console.error('Error adding loan:', error);
-            alert('An error occurred while adding the loan.');
+        const response = await apiFetch('/api/loans/', {
+            method: 'POST',
+            body: JSON.stringify(loanData)
+        });
+        if (response.ok) {
+            document.getElementById('loan-form').reset();
+            fetchAndRenderData();
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error('Failed to add loan:', errorMessage);
+            alert(`Failed to add loan (Status: ${response.status}): ${errorMessage}`);
         }
     });
 
@@ -802,7 +774,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (editLoanBtn) {
             const id = editLoanBtn.dataset.id;
-            const loan = state.loans.find(l => l.id === id);
+            const loan = state.loans.find(l => String(l.id) === String(id)); // Ensure string comparison
             openLoanDetMod(loan);
         }
     });
@@ -817,23 +789,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const newPaidStatus = markPaidBtn ? true : false;
             openConfirmModal(`Are you sure you want to mark this loan as ${newPaidStatus ? 'Paid' : 'Pending'}?`, async (confirmed) => {
                 if (confirmed) {
-                    try {
-                        const response = await apiFetch(`/api/loans/mark-paid/${loanId}/`, {
-                            method: 'PUT',
-                            body: JSON.stringify({ paid: newPaidStatus })
-                        });
-                        if (response.ok) {
-                            closeLoanDetMod();
-                            fetchAndRenderData();
-                        } else {
-                            const errorData = await response.json();
-                            console.error('Failed to update loan status:', errorData);
-                            alert('Failed to update loan status: ' + JSON.stringify(errorData));
-                        }
-                    }
-                    catch (error) {
-                        console.error('Error updating loan status:', error);
-                        alert('An error occurred while updating the loan status.');
+                    const response = await apiFetch(`/api/loans/mark-paid/${loanId}/`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ paid: newPaidStatus })
+                    });
+                    if (response.ok) {
+                        closeLoanDetMod();
+                        fetchAndRenderData();
+                    } else {
+                        const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+                        console.error('Failed to update loan status:', errorMessage);
+                        alert(`Failed to update loan status (Status: ${response.status}): ${errorMessage}`);
                     }
                 }
             });
@@ -850,22 +816,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             due_date: document.getElementById('loan-det-due').value,
         };
 
-        try {
-            const response = await apiFetch(`/api/loans/${id}/`, {
-                method: 'PUT',
-                body: JSON.stringify(updatedLoanData)
-            });
-            if (response.ok) {
-                closeLoanDetMod();
-                fetchAndRenderData();
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to save loan changes:', errorData);
-                alert('Failed to save loan changes: ' + JSON.stringify(errorData));
-            }
-        } catch (error) {
-            console.error('Error saving loan changes:', error);
-            alert('An error occurred while saving loan changes.');
+        const response = await apiFetch(`/api/loans/${id}/`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedLoanData)
+        });
+        if (response.ok) {
+            closeLoanDetMod();
+            fetchAndRenderData();
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error('Failed to save loan changes:', errorMessage);
+            alert(`Failed to save loan changes (Status: ${response.status}): ${errorMessage}`);
         }
     });
 
@@ -877,8 +838,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (selectedRadio && selectedRadio.value === 'custom') {
             customDateRangeInputs.classList.remove('hidden'); // Show it
             // Initialize Flatpickr specifically for these inputs when they are shown
-            initializeFlatpickrForElements(expStartDate);
-            initializeFlatpickrForElements(expEndDate);
+            initializeFlatpickrForSpecificElement(expStartDate);
+            initializeFlatpickrForSpecificElement(expEndDate, { maxDate: "today" }); // Max date for end date
         } else {
             customDateRangeInputs.classList.add('hidden'); // Hide it
             // Clear dates when hiding for a clean state
@@ -916,29 +877,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             exportUrl += '?' + params.toString();
         }
 
-        try {
-            const response = await apiFetch(exportUrl, { method: 'GET' });
+        const response = await apiFetch(exportUrl, { method: 'GET' });
 
-            if (response.ok) {
-                const blob = await response.blob();
-                const contentDisposition = response.headers.get('Content-Disposition');
-                let filename = `report.${format}`;
+        if (response.ok) {
+            const blob = await (await fetch(`${BASE_URL}${exportUrl}`, { method: 'GET' })).blob(); // Re-fetch to get blob directly
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `report.${format}`;
 
-                if (contentDisposition) {
-                    const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
-                    if (filenameMatch && filenameMatch[1]) {
-                        filename = filenameMatch[1];
-                    }
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
                 }
-                saveAs(blob, filename);
-                alert("Report generated and download started!");
-            } else {
-                const errorText = await response.text();
-                alert(`Failed to generate report: ${errorText}`);
             }
-        } catch (error) {
-            console.error("Export error:", error);
-            alert("An error occurred during report generation.");
+            saveAs(blob, filename);
+            alert("Report generated and download started!");
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error("Export error:", errorMessage);
+            alert(`Failed to generate report (Status: ${response.status}): ${errorMessage}`);
         }
     });
 
@@ -1034,35 +991,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        try {
-            // Send PATCH request to update user profile (even for public user)
-            const response = await apiFetch('/api/user/profile/', { // This endpoint might need to be adjusted on backend
-                method: 'PATCH',
-                body: JSON.stringify({
-                    username: newUsername,
-                    email: newEmail,
-                    mobile_number: newMobile
-                })
-            });
+        const response = await apiFetch('/api/user/profile/', { // This endpoint might need to be adjusted on backend
+            method: 'PATCH',
+            body: JSON.stringify({
+                username: newUsername,
+                email: newEmail,
+                mobile_number: newMobile
+            })
+        });
 
-            if (response.ok) {
-                const updatedUser = await response.json();
-                state.user.username = updatedUser.username;
-                state.user.email = updatedUser.email;
-                state.user.mobileNumber = updatedUser.mobile_number;
+        if (response.ok) {
+            const updatedUser = response.data;
+            state.user.username = updatedUser.username;
+            state.user.email = updatedUser.email;
+            state.user.mobileNumber = updatedUser.mobile_number;
 
-                profSaveStat.textContent = "Profile updated successfully!";
-                updateProfileDisplay(); // Update UI based on new profile data
-                toggleProfileEditMode(false);
-            } else {
-                const errorData = await response.json();
-                if (errorData.username) userErr.textContent = errorData.username[0];
-                if (errorData.email) emErr.textContent = errorData.reason || errorData.email[0]; // Use reason if available
-                profSaveStat.textContent = 'Failed to save changes: ' + (errorData.detail || '');
-            }
-        } catch (error) {
-            console.error("Error saving profile:", error);
-            profSaveStat.textContent = `Error saving profile: An unexpected error occurred.`;
+            profSaveStat.textContent = "Profile updated successfully!";
+            updateProfileDisplay(); // Update UI based on new profile data
+            toggleProfileEditMode(false);
+        } else {
+            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+            console.error('Failed to save profile:', errorMessage);
+            if (response.data.username) userErr.textContent = response.data.username[0];
+            if (response.data.email) emErr.textContent = response.data.email[0];
+            profSaveStat.textContent = `Failed to save changes (Status: ${response.status}): ${errorMessage}`;
         }
     });
 
@@ -1077,25 +1029,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- INITIALIZATION ---
 
-    // Initialize Flatpickr for date input fields
-    const initializeFlatpickrForElements = (selectorOrElement) => {
-        if (typeof flatpickr !== 'undefined') {
-            flatpickr(selectorOrElement, {
+    // Generic Flatpickr initializer (can be used for fields without special rules)
+    const initializeFlatpickrForSpecificElement = (element, extraOptions = {}) => {
+        if (typeof flatpickr !== 'undefined' && element) {
+            flatpickr(element, {
                 dateFormat: "Y-m-d", // For backend compatibility
                 altInput: true,
                 altFormat: "d-m-Y", // For user display
-                allowInput: true
+                allowInput: true,
+                ...extraOptions // Merge extra options
             });
-            console.log('Flatpickr initialized for:', selectorOrElement);
+            console.log('Flatpickr initialized for:', element.id || element.className);
         } else {
-            console.error("Flatpickr library is not loaded. Date pickers will not initialize.");
+            if (!element) console.warn("Attempted to initialize Flatpickr on a non-existent element.");
+            else console.error("Flatpickr library is not loaded. Date pickers will not initialize for:", element.id || element.className);
         }
     };
 
-    // Initial Flatpickr setup for all relevant inputs
-    initializeFlatpickrForElements(".date-input");
+    // Initialize specific date inputs with their unique requirements
+    initializeFlatpickrForSpecificElement(transDateInput, { maxDate: "today" }); // Transaction date must be today or earlier
+    initializeFlatpickrForSpecificElement(loanDueInput); // Loan due date (add form)
+    initializeFlatpickrForSpecificElement(loanDetDueInput); // Loan details modal due date (edit form)
+    initializeFlatpickrForSpecificElement(filtStartDate); // Transaction filter start date
+    initializeFlatpickrForSpecificElement(filtEndDate); // Transaction filter end date
 
-    // Call the function to set initial visibility of export date range inputs
+    // Call the function to set initial visibility of export date range inputs (this function calls Flatpickr for expStartDate/expEndDate)
     updateExportDateRangeVisibility();
 
     // Populate currency dropdown on load
