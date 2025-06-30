@@ -2,17 +2,43 @@
 let transactions = JSON.parse(localStorage.getItem('spendwise_transactions')) || [];
 let budgets = JSON.parse(localStorage.getItem('spendwise_budgets')) || [];
 let loans = JSON.parse(localStorage.getItem('spendwise_loans')) || [];
-let userProfile = JSON.parse(localStorage.getItem('spendwise_user_profile')) || {
-    username: 'John Doe',
-    email: 'john.doe@example.com',
-    mobile: '+1234567890',
-    currency: 'INR' // Changed default currency to INR
-};
+// userProfile will be initialized after checking onboarding status
+let userProfile = null;
 
 let currentPage = 'dashboard';
 let expenseChart = null; // To store the Chart.js instance
 
-// --- Utility Functions ---
+// --- Date Formatting Utility Functions ---
+
+/**
+ * Converts a date string from YYYY-MM-DD to DD-MM-YYYY.
+ * @param {string} dateString - Date string in YYYY-MM-DD format.
+ * @returns {string} Date string in DD-MM-YYYY format.
+ */
+function formatDateForDisplay(dateString) {
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateString; // Return as is if format is unexpected
+}
+
+/**
+ * Converts a date string from DD-MM-YYYY to YYYY-MM-DD.
+ * @param {string} dateString - Date string in DD-MM-YYYY format.
+ * @returns {string} Date string in YYYY-MM-DD format.
+ */
+function parseDateForStorage(dateString) {
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateString; // Return as is if format is unexpected
+}
+
+// --- General Utility Functions ---
 
 /**
  * Generates a unique ID for new items.
@@ -43,7 +69,7 @@ function formatCurrency(amount) {
         'EUR': { symbol: '€', locale: 'de-DE' },
         'INR': { symbol: '₹', locale: 'en-IN' }
     };
-    const { symbol, locale } = currencyOptions[userProfile.currency] || currencyOptions['USD'];
+    const { symbol, locale } = currencyOptions[userProfile.currency] || currencyOptions['INR']; // Default to INR
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: userProfile.currency,
@@ -78,6 +104,74 @@ function openModal(modalId) {
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
+
+// --- Onboarding Functions ---
+
+/**
+ * Initializes user profile based on localStorage or shows onboarding.
+ */
+function initializeUserProfile() {
+    userProfile = JSON.parse(localStorage.getItem('spendwise_user_profile'));
+    const onboardingCompletedFlag = localStorage.getItem('spendwise_onboarding_completed');
+
+    if (!userProfile) { // No existing profile
+        if (onboardingCompletedFlag === 'true') { // User previously skipped or used dummy
+            userProfile = {
+                username: 'John Doe',
+                email: 'john.doe@example.com',
+                mobile: '+1234567890',
+                currency: 'INR'
+            };
+            saveData(); // Save this dummy profile to localStorage
+            renderCurrentPage(); // Render app content
+        } else { // First time user, show onboarding modal
+            openModal('onboardingModal');
+            // Set up onboarding form handlers
+            document.getElementById('onboardingForm').onsubmit = handleOnboardingSubmit;
+            document.getElementById('skipOnboardingBtn').onclick = skipOnboarding;
+        }
+    } else { // Profile already exists, just render the app
+        renderCurrentPage();
+    }
+}
+
+/**
+ * Handles the submission of the onboarding form.
+ * @param {Event} event - The form submission event.
+ */
+function handleOnboardingSubmit(event) {
+    event.preventDefault();
+    const name = document.getElementById('onboardingName').value.trim();
+    const email = document.getElementById('onboardingEmail').value.trim();
+
+    userProfile = {
+        username: name || 'John Doe', // Use dummy if empty
+        email: email || 'john.doe@example.com', // Use dummy if empty
+        mobile: '+1234567890', // Default mobile
+        currency: 'INR' // Default currency
+    };
+    localStorage.setItem('spendwise_onboarding_completed', 'true'); // Mark onboarding as completed
+    saveData();
+    closeModal('onboardingModal');
+    renderCurrentPage(); // Render app content
+}
+
+/**
+ * Skips the onboarding process and uses dummy data.
+ */
+function skipOnboarding() {
+    userProfile = {
+        username: 'John Doe',
+        email: 'john.doe@example.com',
+        mobile: '+1234567890',
+        currency: 'INR'
+    };
+    localStorage.setItem('spendwise_onboarding_completed', 'true'); // Mark onboarding as completed
+    saveData();
+    closeModal('onboardingModal');
+    renderCurrentPage(); // Render app content
+}
+
 
 // --- Page Rendering Functions ---
 
@@ -284,7 +378,7 @@ function renderRecentTransactions() {
         const row = document.createElement('tr');
         const amountClass = t.type === 'income' ? 'text-green-600' : 'text-red-600';
         row.innerHTML = `
-            <td class="px-4 py-2 whitespace-nowrap">${t.date}</td>
+            <td class="px-4 py-2 whitespace-nowrap">${formatDateForDisplay(t.date)}</td>
             <td class="px-4 py-2 whitespace-nowrap">${t.description || '-'}</td>
             <td class="px-4 py-2 whitespace-nowrap">${t.category}</td>
             <td class="px-4 py-2 whitespace-nowrap ${amountClass}">${formatCurrency(parseFloat(t.amount))}</td>
@@ -339,7 +433,7 @@ function renderTransactions() {
     // Initialize Flatpickr for date range filtering
     flatpickr("#transactionFilterDateRange", {
         mode: "range",
-        dateFormat: "Y-m-d",
+        dateFormat: "d-m-Y", // Set date format for Flatpickr
         onChange: function(selectedDates, dateStr, instance) {
             filterAndRenderTransactions();
         }
@@ -365,11 +459,11 @@ function renderTransactionsTable() {
     if (dateRangeInput) {
         const dates = dateRangeInput.split(' to ');
         if (dates.length === 2) {
-            startDate = new Date(dates[0]);
-            endDate = new Date(dates[1]);
+            startDate = new Date(parseDateForStorage(dates[0]));
+            endDate = new Date(parseDateForStorage(dates[1]));
         } else if (dates.length === 1) {
-            startDate = new Date(dates[0]);
-            endDate = new Date(dates[0]);
+            startDate = new Date(parseDateForStorage(dates[0]));
+            endDate = new Date(parseDateForStorage(dates[0]));
         }
     }
 
@@ -377,7 +471,7 @@ function renderTransactionsTable() {
         const matchesSearch = (t.description && t.description.toLowerCase().includes(searchKeyword)) ||
                               t.category.toLowerCase().includes(searchKeyword);
 
-        const transactionDate = new Date(t.date);
+        const transactionDate = new Date(t.date); // Date is already in YYYY-MM-DD for comparison
         const matchesDate = (!startDate || transactionDate >= startDate) &&
                             (!endDate || transactionDate <= endDate);
 
@@ -395,7 +489,7 @@ function renderTransactionsTable() {
         const row = document.createElement('tr');
         const amountClass = t.type === 'income' ? 'text-green-600' : 'text-red-600';
         row.innerHTML = `
-            <td class="px-4 py-2 whitespace-nowrap">${t.date}</td>
+            <td class="px-4 py-2 whitespace-nowrap">${formatDateForDisplay(t.date)}</td>
             <td class="px-4 py-2 whitespace-nowrap">${t.description || '-'}</td>
             <td class="px-4 py-2 whitespace-nowrap">${t.category}</td>
             <td class="px-4 py-2 whitespace-nowrap ${amountClass}">${formatCurrency(parseFloat(t.amount))}</td>
@@ -440,6 +534,8 @@ function showTransactionModal(id = null) {
     form.reset(); // Clear form fields
     transactionIdInput.value = ''; // Clear ID
 
+    let defaultDateValue = new Date().toISOString().split('T')[0]; // YYYY-MM-DD for new transactions
+
     if (id) {
         modalTitle.textContent = 'Edit Transaction';
         const transaction = transactions.find(t => t.id === id);
@@ -448,18 +544,17 @@ function showTransactionModal(id = null) {
             amountInput.value = transaction.amount;
             categoryInput.value = transaction.category;
             typeInput.value = transaction.type;
-            dateInput.value = transaction.date;
+            defaultDateValue = transaction.date; // Use stored YYYY-MM-DD date
             descriptionInput.value = transaction.description;
         }
     } else {
         modalTitle.textContent = 'Add Transaction';
-        dateInput.value = new Date().toISOString().split('T')[0]; // Default to today's date
     }
 
     // Initialize Flatpickr for the date input
     flatpickr(dateInput, {
-        dateFormat: "Y-m-d",
-        defaultDate: dateInput.value || new Date()
+        dateFormat: "d-m-Y", // Set date format for Flatpickr input
+        defaultDate: formatDateForDisplay(defaultDateValue) // Display in DD-MM-YYYY
     });
 
     openModal('transactionModal');
@@ -475,7 +570,8 @@ function handleTransactionSubmit(event) {
     const amount = parseFloat(document.getElementById('transactionAmount').value);
     const category = document.getElementById('transactionCategory').value;
     const type = document.getElementById('transactionType').value;
-    const date = document.getElementById('transactionDate').value;
+    // Parse date from DD-MM-YYYY to YYYY-MM-DD for storage
+    const date = parseDateForStorage(document.getElementById('transactionDate').value);
     const description = document.getElementById('transactionDescription').value;
 
     if (isNaN(amount) || amount <= 0) {
@@ -772,7 +868,7 @@ function renderLoansTable() {
             <td class="px-4 py-2 whitespace-nowrap">${l.lender}</td>
             <td class="px-4 py-2 whitespace-nowrap">${formatCurrency(parseFloat(l.amount))}</td>
             <td class="px-4 py-2 whitespace-nowrap">${l.interestRate ? `${l.interestRate}%` : '-'}</td>
-            <td class="px-4 py-2 whitespace-nowrap">${l.repaymentDate || '-'}</td>
+            <td class="px-4 py-2 whitespace-nowrap">${formatDateForDisplay(l.repaymentDate) || '-'}</td>
             <td class="px-4 py-2 whitespace-nowrap ${statusClass}">${l.status}</td>
             <td class="px-4 py-2 whitespace-nowrap">
                 <button onclick="toggleLoanStatus('${l.id}')" class="text-gray-600 hover:text-gray-800 mr-2">
@@ -807,6 +903,8 @@ function showLoanModal(id = null) {
     form.reset();
     loanIdInput.value = '';
 
+    let defaultRepaymentDateValue = ''; // YYYY-MM-DD for new loans
+
     if (id) {
         modalTitle.textContent = 'Edit Loan';
         const loan = loans.find(l => l.id === id);
@@ -814,19 +912,18 @@ function showLoanModal(id = null) {
             loanIdInput.value = loan.id;
             amountInput.value = loan.amount;
             interestRateInput.value = loan.interestRate;
-            repaymentDateInput.value = loan.repaymentDate;
+            defaultRepaymentDateValue = loan.repaymentDate; // Use stored YYYY-MM-DD date
             lenderInput.value = loan.lender;
             descriptionInput.value = loan.description;
         }
     } else {
         modalTitle.textContent = 'Add Loan';
-        repaymentDateInput.value = ''; // Clear default for new loan
     }
 
     // Initialize Flatpickr for the date input
     flatpickr(repaymentDateInput, {
-        dateFormat: "Y-m-d",
-        defaultDate: repaymentDateInput.value || null
+        dateFormat: "d-m-Y", // Set date format for Flatpickr input
+        defaultDate: formatDateForDisplay(defaultRepaymentDateValue) || null // Display in DD-MM-YYYY
     });
 
     openModal('loanModal');
@@ -841,7 +938,8 @@ function handleLoanSubmit(event) {
     const id = document.getElementById('loanId').value;
     const amount = parseFloat(document.getElementById('loanAmount').value);
     const interestRate = parseFloat(document.getElementById('loanInterestRate').value) || 0;
-    const repaymentDate = document.getElementById('loanRepaymentDate').value;
+    // Parse date from DD-MM-YYYY to YYYY-MM-DD for storage
+    const repaymentDate = parseDateForStorage(document.getElementById('loanRepaymentDate').value);
     const lender = document.getElementById('loanLender').value;
     const description = document.getElementById('loanDescription').value;
 
@@ -1054,10 +1152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', handleSidebarClick);
     });
 
-    // Initialize page based on URL hash or default to dashboard
-    currentPage = window.location.hash.substring(1) || 'dashboard';
-    renderCurrentPage();
-
     // Sidebar collapse/expand toggle for desktop
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('mainContent');
@@ -1098,9 +1192,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Initialize user profile and potentially show onboarding
+    initializeUserProfile();
 });
 
 // Initial data for demonstration if localStorage is empty
+// Dates are now in YYYY-MM-DD format for internal consistency
 if (transactions.length === 0 && budgets.length === 0 && loans.length === 0) {
     transactions = [
         { id: generateUniqueId(), amount: 1200, category: 'Salary', type: 'income', date: '2025-06-01', description: 'Monthly Salary' },
