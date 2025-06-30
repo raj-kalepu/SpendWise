@@ -130,81 +130,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- DATA FETCHING FUNCTIONS ---
-    const fetchDataFromBackend = async () => {
-        console.log('Fetching data from backend...');
-        try {
-            console.log('Attempting to fetch transactions...');
-            const transResponse = await apiFetch('/api/transactions/');
-
-            if (transResponse.ok) {
-                const paginatedData = transResponse.data;
-                console.log('Transactions JSON data received:', paginatedData); 
-                const data = paginatedData.results;
-
-                if (Array.isArray(data)) { 
-                    state.transactions = data;
-                    state.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    console.log('Transactions fetched and sorted. Count:', state.transactions.length);
-                } else {
-                    console.error("Transactions API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
-                    state.transactions = [];
-                }
-            } else {
-                console.error("Failed to fetch transactions:", transResponse.data);
-                state.transactions = [];
-            }
-
-            console.log('Attempting to fetch budgets...');
-            const budgetResponse = await apiFetch('/api/budgets/');
-            if (budgetResponse.ok) {
-                const paginatedData = budgetResponse.data;
-                console.log('Budgets JSON data received:', paginatedData);
-                const data = paginatedData.results;
-
-                if (Array.isArray(data)) {
-                    state.budgets = data;
-                    console.log('Budgets fetched. Count:', state.budgets.length);
-                } else {
-                    console.error("Budgets API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
-                    state.budgets = [];
-                }
-            } else {
-                console.error("Failed to fetch budgets:", budgetResponse.data);
-                state.budgets = [];
-            }
-
-            console.log('Attempting to fetch loans...');
-            const loanResponse = await apiFetch('/api/loans/');
-            if (loanResponse.ok) {
-                const paginatedData = loanResponse.data;
-                console.log('Loans JSON data received:', paginatedData);
-                const data = paginatedData.results;
-
-                if (Array.isArray(data)) {
-                    state.loans = data;
-                    console.log('Loans fetched. Count:', state.loans.length);
-                } else {
-                    console.error("Loans API did not return an array in 'results'. Received type:", typeof data, "Value:", data);
-                    state.loans = [];
-                }
-            } else {
-                console.error("Failed to fetch loans:", loanResponse.data);
-                state.loans = [];
-            }
-
-            renderAll();
-            console.log('All data fetch attempts completed. Rendering UI.');
-        } catch (error) {
-            console.error("Error in fetchDataFromBackend's outer try-catch block:", error);
-            state.transactions = [];
-            state.budgets = [];
-            state.loans = [];
-            renderAll();
-            alert("Failed to load data. Please check backend connection. Details in console.");
-        }
-    };
-
     // Main function to trigger data fetch and render
     const fetchAndRenderData = () => {
         fetchDataFromBackend();
@@ -290,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openLoanDetMod = (loan) => {
         loanModTitle.textContent = 'Edit Loan';
         document.getElementById('loan-det-id').value = loan.id;
-        document.getElementById('loan-det-lend').value = loan.lender_borrower;
+        document.getElementById('loan-det-lend').value = loan.lender; // Changed from loan.lender_borrower to loan.lender
         document.getElementById('loan-det-amt').value = loan.amount;
         document.getElementById('loan-det-due').value = loan.due_date;
 
@@ -490,8 +415,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.className = 'tbl-row';
 
             row.innerHTML = `
-                <td class="p-4">${l.lender_borrower}</td>
-                <td class="p-4">${formatCurrency(l.amount)}</td>
+                <td class="p-4">${l.lender}</td> <td class="p-4">${formatCurrency(l.amount)}</td>
                 <td class="p-4">${formatDate(l.due_date)}</td>
                 <td class="p-4 text-center"><span class="loan-status-tag ${statusClass}">${l.paid ? 'Paid' : 'Pending'}</span></td>
                 <td class="p-4 text-center">
@@ -524,7 +448,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
         state.loans.filter(l => !l.paid && new Date(l.due_date + 'T00:00:00') <= sevenDaysFromNow).forEach(l => {
             loanAlertsFound = true;
-            dashLoanRem.innerHTML += `<p class="alert-item text-sky-600">Loan from <strong class="font-semibold">${l.lender_borrower}</strong> of ${formatCurrency(l.amount)} is due on ${formatDate(l.due_date)}.</p>`;
+            dashLoanRem.innerHTML += `<p class="alert-item text-sky-600">Loan from <strong class="font-semibold">${l.lender}</strong> of ${formatCurrency(l.amount)} is due on ${formatDate(l.due_date)}.</p>`; // Changed from l.lender_borrower to l.lender
         });
         if (!loanAlertsFound) dashLoanRem.innerHTML = `<p class="alert-no-data">No loans due soon.</p>`;
     };
@@ -731,6 +655,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const category = document.getElementById('bud-cat').value;
         const amount = parseFloat(document.getElementById('bud-amt').value);
 
+        // Check if budget for this category already exists
+        const existingBudget = state.budgets.find(b => b.category.toLowerCase() === category.toLowerCase());
+        if (existingBudget) {
+            alert(`Budget set for '${category}' already. Kindly edit if you want.`);
+            return; // Stop the function here
+        }
+
         const response = await apiFetch('/api/budgets/', {
             method: 'POST',
             body: JSON.stringify({ category, amount })
@@ -749,7 +680,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('loan-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const loanData = {
-            lender_borrower: document.getElementById('loan-lend').value,
+            lender: document.getElementById('loan-lend').value, // Changed from lender_borrower to lender
             amount: parseFloat(document.getElementById('loan-amt').value),
             due_date: document.getElementById('loan-due').value,
             paid: false,
@@ -811,7 +742,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const id = document.getElementById('loan-det-id').value;
         const updatedLoanData = {
-            lender_borrower: document.getElementById('loan-det-lend').value,
+            lender: document.getElementById('loan-det-lend').value, // Changed from lender_borrower to lender
             amount: parseFloat(document.getElementById('loan-det-amt').value),
             due_date: document.getElementById('loan-det-due').value,
         };
@@ -858,7 +789,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const selectedRange = document.querySelector('input[name="export-range"]:checked').value;
 
-        let exportUrl = `/api/export/${format}/`; // Base URL for export API
+        let exportUrlPath = `/api/export/${format}/`; // Base URL path for export API
         const params = new URLSearchParams();
 
         if (selectedRange === 'custom') {
@@ -873,14 +804,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             params.append('end_date', endDate);
         }
 
-        if (params.toString()) {
-            exportUrl += '?' + params.toString();
-        }
+        const fullExportUrl = `${BASE_URL}${exportUrlPath}?${params.toString()}`;
 
-        const response = await apiFetch(exportUrl, { method: 'GET' });
+        try {
+            const response = await fetch(fullExportUrl, { method: 'GET' });
 
-        if (response.ok) {
-            const blob = await (await fetch(`${BASE_URL}${exportUrl}`, { method: 'GET' })).blob(); // Re-fetch to get blob directly
+            if (!response.ok) {
+                let errorData;
+                try {
+                    errorData = await response.json(); // Try JSON first for backend errors
+                } catch (e) {
+                    errorData = await response.text(); // Fallback to text
+                }
+                console.error(`Export Error (Status: ${response.status}) for ${fullExportUrl}:`, errorData);
+                alert(`Failed to generate report (Status: ${response.status}): ${JSON.stringify(errorData)}`);
+                return;
+            }
+
+            // If response is OK, it's a file download
+            const blob = await response.blob();
             const contentDisposition = response.headers.get('Content-Disposition');
             let filename = `report.${format}`;
 
@@ -892,10 +834,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             saveAs(blob, filename);
             alert("Report generated and download started!");
-        } else {
-            const errorMessage = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
-            console.error("Export error:", errorMessage);
-            alert(`Failed to generate report (Status: ${response.status}): ${errorMessage}`);
+
+        } catch (error) {
+            console.error(`Network or Fetch Error for export ${fullExportUrl}:`, error);
+            alert(`Failed to generate report: ${error.message}`);
         }
     });
 
@@ -1058,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Populate currency dropdown on load
     populateCurrencyDropdown();
-    
+
     // Update profile display with initial public user data
     updateProfileDisplay();
 
