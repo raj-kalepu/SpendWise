@@ -371,6 +371,34 @@
         </div>
     </div>
 
+    <!-- Budget Model -->
+    <div id="bud-mod" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="bud-mod-title">Edit Budget</h3>
+                <button type="button" class="close-modal-btn" id="bud-mod-cancel-btn">&times;</button>
+            </div>
+            <form id="bud-edit-form" class="modal-form">
+                <input type="hidden" id="bud-id">
+    
+                <div class="form-group">
+                    <label for="bud-cat-edit">Category:</label>
+                    <input type="text" id="bud-cat-edit" required readonly>
+                </div>
+    
+                <div class="form-group">
+                    <label for="bud-amt-edit">Amount:</label>
+                    <input type="number" id="bud-amt-edit" step="0.01" required>
+                </div>
+    
+                <div class="form-actions">
+                    <button type="submit" class="btn-main">Save Changes</button>
+                    <button type="button" id="bud-delete-btn" class="btn-red">Delete Budget</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Loan Details Modal -->
     <div id="loan-det-mod" class="mod-bg hidden">
         <div class="mod-cont">
